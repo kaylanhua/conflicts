@@ -1,6 +1,8 @@
 # hoch paper
+## statement of work
 this folder attempts to recreate the work by [hoch](https://www.linkedin.com/in/jannishoch/) et al in the following [paper](https://iopscience.iop.org/article/10.1088/1748-9326/ac3db2/meta)
 
+## details
 methods
 - copro (open-source ml model)
 - random forest
@@ -14,5 +16,5 @@ possible extensions
 
 ---
 
-logistics
+## logistics
 conda env: c-hoch

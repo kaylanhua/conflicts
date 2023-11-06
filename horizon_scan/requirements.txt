@@ -1,0 +1,14 @@
+bs4
+pandas
+numpy
+matplotlib
+seaborn
+python-dotenv
+requests
+selenium
+webdriver_manager
+gensim
+xgboost
+nltk
+scikit-learn
+openai
