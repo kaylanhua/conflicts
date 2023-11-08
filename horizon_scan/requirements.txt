@@ -14,3 +14,4 @@ nltk
 scikit-learn
 openai
 networkx
+pyvis
