@@ -27,7 +27,7 @@ set_bg_color('#F9F5F1')
 
 
 # Read the JSON data from file
-filename = './graph72.json'
+filename = '/mount/src/conflicts/horizon_scan/graph72.json'
 with open(filename, 'r') as file:
     papers = json.load(file)
 
