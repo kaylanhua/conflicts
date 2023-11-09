@@ -28,6 +28,7 @@ set_bg_color('#F9F5F1')
 
 # Read the JSON data from file
 filename = '/mount/src/conflicts/horizon_scan/graph72.json'
+# filename = 'graph72.json' ## on local
 with open(filename, 'r') as file:
     papers = json.load(file)
 
@@ -35,9 +36,9 @@ len(papers)
 
 
 
-
 # Function to generate and display the network
 def generate_network(search_keyword=None):
+    # st.spinner('searching the network...')
     G = nx.Graph()  # or however you construct your graph
     # Nodes
     for id, info in papers.items():
@@ -77,8 +78,8 @@ def generate_network(search_keyword=None):
 # ----------------------------------------------
 
 # Title and introduction
-st.title("kayla's network analysis")
-st.write('an exploration of machine learning and conflict modeling')
+st.title("[wip] kayla's network analysis")
+st.write('an exploration of machine learning and conflict modeling (disclaimer: loading the network takes a few seconds. please be patient!)')
 
 # Keyword search functionality
 col1, col2 = st.columns([3, 1]) 
