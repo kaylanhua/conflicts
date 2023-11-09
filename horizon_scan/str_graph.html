@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "label": "Modeling analysis of armed conflict risk in sub-Saharan Africa, 2000\u20132019", "shape": "dot", "title": "Modeling analysis of armed conflict risk in sub-Saharan Africa, 2000\u20132019"}, {"color": "#97c2fc", "id": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba", "label": "Lessons from an escalation prediction competition", "shape": "dot", "title": "Lessons from an escalation prediction competition"}, {"color": "#97c2fc", "id": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "label": "Projecting armed conflict risk in Africa towards 2050 along the SSP-RCP scenarios: a machine learning approach", "shape": "dot", "title": "Projecting armed conflict risk in Africa towards 2050 along the SSP-RCP scenarios: a machine learning approach"}, {"color": "#97c2fc", "id": "b8974a3094f93e59507c3b775822f3e819ead4db", "label": "ViEWS2020: Revising and evaluating the ViEWS political Violence Early-Warning System", "shape": "dot", "title": "ViEWS2020: Revising and evaluating the ViEWS political Violence Early-Warning System"}, {"color": "#97c2fc", "id": "1e52a479cad4fedd32384aa346233203f9d19bbf", "label": "Climate has contrasting direct and indirect effects on armed conflicts", "shape": "dot", "title": "Climate has contrasting direct and indirect effects on armed conflicts"}, {"color": "#97c2fc", "id": "e3239a1afb502fe194c5fda4675662772a829a1d", "label": "ViEWS: A political violence early-warning system", "shape": "dot", "title": "ViEWS: A political violence early-warning system"}, {"color": "#97c2fc", "id": "2e128cd02947725de76622dc04435b217fe4d56d", "label": "Predicting Conflict", "shape": "dot", "title": "Predicting Conflict"}, {"color": "#97c2fc", "id": "aeac3f12ec7b2a490f1f67dcb6c13bc58faaed83", "label": "The shape of things to come? Expanding the inequality and grievance model for civil war forecasts with event data", "shape": "dot", "title": "The shape of things to come? Expanding the inequality and grievance model for civil war forecasts with event data"}, {"color": "#97c2fc", "id": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3", "label": "Civil conflict sensitivity to growing-season drought", "shape": "dot", "title": "Civil conflict sensitivity to growing-season drought"}, {"color": "#97c2fc", "id": "26acad24d7bbaea5abfe66092b11bca450d8b8ac", "label": "Square Pegs in Round Holes: Inequalities, Grievances, and Civil War", "shape": "dot", "title": "Square Pegs in Round Holes: Inequalities, Grievances, and Civil War"}, {"color": "#97c2fc", "id": "7ee54020f8b279d0a82afe22b466db95c498be90", "label": "Quantifying the Influence of Climate on Human Conflict", "shape": "dot", "title": "Quantifying the Influence of Climate on Human Conflict"}, {"color": "#97c2fc", "id": "792e75d052a6fb31947b0161ded7c99c8f26a634", "label": "Predicting Armed Conflict, 2010\u20132050", "shape": "dot", "title": "Predicting Armed Conflict, 2010\u20132050"}, {"color": "#97c2fc", "id": "52c2bed21c279b3d31806891756c61790b2399ad", "label": "Climate variability and conflict risk in East Africa, 1990\u20132009", "shape": "dot", "title": "Climate variability and conflict risk in East Africa, 1990\u20132009"}, {"color": "#97c2fc", "id": "c545ab4283787fe43cb0cf29de6b46e6bf511957", "label": "Political Marginalization, Climate Change, and Conflict in African Sahel States", "shape": "dot", "title": "Political Marginalization, Climate Change, and Conflict in African Sahel States"}, {"color": "#97c2fc", "id": "5642a582b9a9a238e0211ca85e796e9238cd6057", "label": "A Global Model for Forecasting Political Instability", "shape": "dot", "title": "A Global Model for Forecasting Political Instability"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "01028e69dfd57d2738dcb39c057bbf952dbcb0af"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "b8974a3094f93e59507c3b775822f3e819ead4db"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "1e52a479cad4fedd32384aa346233203f9d19bbf"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "e3239a1afb502fe194c5fda4675662772a829a1d"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "2e128cd02947725de76622dc04435b217fe4d56d"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "aeac3f12ec7b2a490f1f67dcb6c13bc58faaed83"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "26acad24d7bbaea5abfe66092b11bca450d8b8ac"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "7ee54020f8b279d0a82afe22b466db95c498be90"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "792e75d052a6fb31947b0161ded7c99c8f26a634"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "52c2bed21c279b3d31806891756c61790b2399ad"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "c545ab4283787fe43cb0cf29de6b46e6bf511957"}, {"arrows": "to", "from": "c951ac9a54bba70c6e8337ab5815f3ac45434ec5", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba", "to": "b8974a3094f93e59507c3b775822f3e819ead4db"}, {"arrows": "to", "from": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba", "to": "e3239a1afb502fe194c5fda4675662772a829a1d"}, {"arrows": "to", "from": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba", "to": "792e75d052a6fb31947b0161ded7c99c8f26a634"}, {"arrows": "to", "from": "5e2092e569a49b8404e4646eb7bfc8df51bc2fba", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "to": "b8974a3094f93e59507c3b775822f3e819ead4db"}, {"arrows": "to", "from": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "to": "e3239a1afb502fe194c5fda4675662772a829a1d"}, {"arrows": "to", "from": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "to": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3"}, {"arrows": "to", "from": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "to": "7ee54020f8b279d0a82afe22b466db95c498be90"}, {"arrows": "to", "from": "01028e69dfd57d2738dcb39c057bbf952dbcb0af", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "b8974a3094f93e59507c3b775822f3e819ead4db", "to": "e3239a1afb502fe194c5fda4675662772a829a1d"}, {"arrows": "to", "from": "b8974a3094f93e59507c3b775822f3e819ead4db", "to": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3"}, {"arrows": "to", "from": "1e52a479cad4fedd32384aa346233203f9d19bbf", "to": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3"}, {"arrows": "to", "from": "1e52a479cad4fedd32384aa346233203f9d19bbf", "to": "7ee54020f8b279d0a82afe22b466db95c498be90"}, {"arrows": "to", "from": "1e52a479cad4fedd32384aa346233203f9d19bbf", "to": "52c2bed21c279b3d31806891756c61790b2399ad"}, {"arrows": "to", "from": "e3239a1afb502fe194c5fda4675662772a829a1d", "to": "aeac3f12ec7b2a490f1f67dcb6c13bc58faaed83"}, {"arrows": "to", "from": "e3239a1afb502fe194c5fda4675662772a829a1d", "to": "792e75d052a6fb31947b0161ded7c99c8f26a634"}, {"arrows": "to", "from": "e3239a1afb502fe194c5fda4675662772a829a1d", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "2e128cd02947725de76622dc04435b217fe4d56d", "to": "7ee54020f8b279d0a82afe22b466db95c498be90"}, {"arrows": "to", "from": "aeac3f12ec7b2a490f1f67dcb6c13bc58faaed83", "to": "26acad24d7bbaea5abfe66092b11bca450d8b8ac"}, {"arrows": "to", "from": "aeac3f12ec7b2a490f1f67dcb6c13bc58faaed83", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3", "to": "7ee54020f8b279d0a82afe22b466db95c498be90"}, {"arrows": "to", "from": "2a31dd2f126cd187cc5eb8dbbcd97ad42974ffc3", "to": "c545ab4283787fe43cb0cf29de6b46e6bf511957"}, {"arrows": "to", "from": "26acad24d7bbaea5abfe66092b11bca450d8b8ac", "to": "792e75d052a6fb31947b0161ded7c99c8f26a634"}, {"arrows": "to", "from": "26acad24d7bbaea5abfe66092b11bca450d8b8ac", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}, {"arrows": "to", "from": "7ee54020f8b279d0a82afe22b466db95c498be90", "to": "52c2bed21c279b3d31806891756c61790b2399ad"}, {"arrows": "to", "from": "792e75d052a6fb31947b0161ded7c99c8f26a634", "to": "5642a582b9a9a238e0211ca85e796e9238cd6057"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.33,
+            "damping": 0.95,
+            "nodeDistance": 420,
+            "springConstant": 0.1,
+            "springLength": 110
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
