@@ -15,7 +15,7 @@ def set_bg_color(hex_color):
         }}
         div.stButton > button:first-child {{
             margin-top: 1.5em;
-            height: 2.6em;     /* Increase/decrease based on your preference */
+            height: 2.6em;   
         }}
         </style>
         """,
@@ -27,7 +27,7 @@ set_bg_color('#F9F5F1')
 
 
 # Read the JSON data from file
-filename = 'graph72.json'
+filename = './graph72.json'
 with open(filename, 'r') as file:
     papers = json.load(file)
 
