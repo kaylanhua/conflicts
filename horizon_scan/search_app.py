@@ -4,16 +4,37 @@ import networkx as nx
 import json
 import streamlit.components.v1 as components
 
+st.set_page_config(layout="wide")
 
-# Placeholder for the Pyvis network HTML
-placeholder = st.empty()
+def set_bg_color(hex_color):
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: {hex_color};
+        }}
+        div.stButton > button:first-child {{
+            margin-top: 1.5em;
+            height: 2.6em;     /* Increase/decrease based on your preference */
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+set_bg_color('#F9F5F1')
+
+
 
 # Read the JSON data from file
-filename = 'one_level.json'
+filename = 'graph72.json'
 with open(filename, 'r') as file:
     papers = json.load(file)
 
 len(papers)
+
+
+
 
 # Function to generate and display the network
 def generate_network(search_keyword=None):
@@ -29,18 +50,12 @@ def generate_network(search_keyword=None):
                 G.add_edge(id, cited_id)
 
     # Assuming 'G' is your NetworkX graph
-    net = Network(notebook=False, height="750px", width="100%")
+    net = Network(notebook=False, height="750px", width="100%", bgcolor="#F9F5F1", font_color="black")
 
-    # # Add nodes and edges from NetworkX graph to Pyvis network
-    # for node, node_attrs in G.nodes(data=True):
-    #     if search_keyword and search_keyword.lower() in node_attrs['abstract'].lower():
-    #         net.add_node(node, label=node_attrs['title'], title=node_attrs['abstract'], color='green')
-    #     else:
-    #         net.add_node(node, label=node_attrs['title'], title=node_attrs['abstract'])
-
-    # Add nodes and edges from NetworkX graph to Pyvis network
+    ## searching for keywords and adding nodes
     for node, node_attrs in G.nodes(data=True):
-        net.add_node(node, label=node_attrs['title'], title=node_attrs['title'])
+        color = '#5C4033' if search_keyword and search_keyword.lower() in node_attrs['abstract'].lower() else '#C8A482'
+        net.add_node(node, label=node_attrs['title'], title=node_attrs['abstract'], color=color)
 
     for edge in G.edges():
         net.add_edge(edge[0], edge[1], arrows='to')
@@ -58,13 +73,23 @@ def generate_network(search_keyword=None):
         source_code = html_file.read()
         components.html(source_code, height=750)
 
+
+# ----------------------------------------------
+
 # Title and introduction
-st.title("kayla's Network Analysis")
+st.title("kayla's network analysis")
 st.write('an exploration of machine learning and conflict modeling')
 
 # Keyword search functionality
-search_keyword = st.text_input("search for mentions of keywords (e.g., 'random forest' or 'Syria') in paper abstracts:")
+col1, col2 = st.columns([3, 1]) 
 
-# Button to generate the network
-if st.button('search network'):
+with col1:
+    search_keyword = st.text_input("search for mentions of keywords (e.g., 'random forest' or 'Syria') in paper abstracts:")
+with col2:
+    # Button to generate the network
+    search_button = st.button('search network', key='search')
+
+if search_button:
     generate_network(search_keyword)
+
+
