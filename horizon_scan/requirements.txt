@@ -15,3 +15,5 @@ scikit-learn
 openai
 networkx
 pyvis
+nbimporter
+nbformat

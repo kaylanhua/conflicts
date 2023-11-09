@@ -10,6 +10,8 @@ There's nothing new under the sun:
 - https://www.connectedpapers.com/
 - https://www.researchrabbit.ai/ (spotify for papers?)
 
+![Alt text](net54.png)
+
 ## GPT generated guide
 Creating a computer program to map out prominent papers in the field of machine learning and conflict prediction, clustering them by techniques, and connecting them through citations is a multi-step process that involves a combination of data retrieval, natural language processing, machine learning, and network analysis. Here's a high-level breakdown of how you could start writing this program:
 
@@ -51,34 +53,3 @@ Creating a computer program to map out prominent papers in the field of machine 
 ### Programming Languages and Libraries You Might Use:
 - Python: Due to its rich set of libraries for data science and machine learning.
 - Libraries: BeautifulSoup, PyPDF2, NLTK, spaCy, NetworkX, scikit-learn, Matplotlib, Dash, Streamlit.
-
-### Example Pseudocode:
-```python
-# Pseudo-code for the core functionality of the program
-
-# Data Collection
-papers = collect_papers_from_databases(api_keys)
-references = extract_references(papers)
-
-# Data Preprocessing
-processed_papers = preprocess_papers(papers)
-
-# Algorithm Identification
-classified_papers = classify_algorithms(processed_papers)
-
-# Network Creation
-network = create_network(classified_papers, references)
-
-# Clustering
-clusters = cluster_papers(network)
-
-# Visualization
-visualize_network(network, clusters)
-```
-
-### Things to Keep in Mind:
-- Start with a small dataset to prototype your solution.
-- Consider the computational cost of processing large volumes of text and network analysis.
-- Regularly evaluate the accuracy of your machine learning algorithm classification.
-
-This project would be both challenging and rewarding, providing valuable insights into the landscape of machine learning applications in conflict prediction. It would also contribute to the broader academic community by offering a tool for understanding the development and focus areas within the field.
