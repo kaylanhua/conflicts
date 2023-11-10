@@ -37,6 +37,7 @@ len(papers)
 
 
 # Function to generate and display the network
+## consider caching with st.cache to make this faster
 def generate_network(search_keyword=None):
     # st.spinner('searching the network...')
     G = nx.Graph()  # or however you construct your graph
