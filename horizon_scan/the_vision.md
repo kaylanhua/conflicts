@@ -10,7 +10,7 @@ There's nothing new under the sun:
 - https://www.connectedpapers.com/
 - https://www.researchrabbit.ai/ (spotify for papers?)
 
-![Alt text](net54.png)
+![Alt text](./images/net54.png)
 
 ## GPT generated guide
 Creating a computer program to map out prominent papers in the field of machine learning and conflict prediction, clustering them by techniques, and connecting them through citations is a multi-step process that involves a combination of data retrieval, natural language processing, machine learning, and network analysis. Here's a high-level breakdown of how you could start writing this program:
