@@ -4,8 +4,10 @@ The goal is to create, from a network graph of research papers, a review of lite
 ## Network 
 The preliminary network of 26 papers was generated from the origin node of a paper from 2016 titled: "Comparing Random Forest with Logistic Regression for Predicting Class-Imbalanced Civil War Onset Data"
 - Note that this means my review of literature will only span up to 2016. Next goal is to recreate this with a more recent paper (and/or expand my network trawler to not only look at references, but also citations for that paper).
+- Note^2: nvm i fixed it to also look at citations.
 
-A visualization of the 26 paper network is below. 
+A visualization of the preliminary 26 paper network is below. 
+![Alt text](images/rf26.png)
 
 ## Prompting
 As suggested by GPT: 
@@ -30,3 +32,4 @@ Please provide a detailed literature review based on these papers, focusing on t
 
 
 ## Result
+[not yet done]
