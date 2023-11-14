@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "4b6555beef240120bacb699c7d2f7c8e806b5747", "label": "Comparing Random Forest with Logistic Regression for Predicting Class-Imbalanced Civil War Onset Data", "shape": "dot", "title": "Comparing Random Forest with Logistic Regression for Predicting Class-Imbalanced Civil War Onset Data"}, {"color": "#97c2fc", "id": "a4d4053fa12ac75164fe2df0b20a4d3883c292c3", "label": "edarf: Exploratory Data Analysis using Random Forests", "shape": "dot", "title": "edarf: Exploratory Data Analysis using Random Forests"}, {"color": "#97c2fc", "id": "da0a744bd257cc50a8778b4452b253bbe3c0b654", "label": "Using Random Forests and Simulated Annealing to Predict Probabilities of Election to the Baseball Hall of Fame", "shape": "dot", "title": "Using Random Forests and Simulated Annealing to Predict Probabilities of Election to the Baseball Hall of Fame"}, {"color": "#97c2fc", "id": "3a8743b858ed557e3c722095ad4d4158e271e0bd", "label": "Navigating Random Forests and related advances in algorithmic modeling", "shape": "dot", "title": "Navigating Random Forests and related advances in algorithmic modeling"}, {"color": "#97c2fc", "id": "17c7d2aada72fe59c8d282235b26089d526e44ee", "label": "Conflict Prediction via Machine Learning: Addressing the Rare Events Problem with Bagging", "shape": "dot", "title": "Conflict Prediction via Machine Learning: Addressing the Rare Events Problem with Bagging"}, {"color": "#97c2fc", "id": "12e64de7bba4ad1467972309c511d92079477e71", "label": "Predicting (de-)escalation of sub-national violence using gradient boosting: Does it work?", "shape": "dot", "title": "Predicting (de-)escalation of sub-national violence using gradient boosting: Does it work?"}, {"color": "#97c2fc", "id": "b76bdc1d978d921d36069d66b80655ac0aff415b", "label": "Forecasting conflict using a diverse machine-learning ensemble: Ensemble averaging with multiple tree-based algorithms and variance promoting data configurations", "shape": "dot", "title": "Forecasting conflict using a diverse machine-learning ensemble: Ensemble averaging with multiple tree-based algorithms and variance promoting data configurations"}, {"color": "#97c2fc", "id": "0551d31f66171729c1b011584590d411851444b9", "label": "Efficient and robust high-dimensional sparse logistic regression via nonlinear primal-dual hybrid gradient algorithms", "shape": "dot", "title": "Efficient and robust high-dimensional sparse logistic regression via nonlinear primal-dual hybrid gradient algorithms"}, {"color": "#97c2fc", "id": "6b393d0fe5210993d17458a082ec9a1bfe040b96", "label": "Machine Learning Prediction Models for Mortality in Intensive Care Unit Patients with Lactic Acidosis", "shape": "dot", "title": "Machine Learning Prediction Models for Mortality in Intensive Care Unit Patients with Lactic Acidosis"}, {"color": "#97c2fc", "id": "038c3b0939f17c5f1c6f31ded255f72a014727ed", "label": "Prevention Is Better Than Cure: Machine Learning Approach to Conflict Prediction in Sub-Saharan Africa", "shape": "dot", "title": "Prevention Is Better Than Cure: Machine Learning Approach to Conflict Prediction in Sub-Saharan Africa"}, {"color": "#97c2fc", "id": "97a520228c0d1d5f7410c529a9d924ce187fee77", "label": "Development and Technical Validation of a Smartphone-Based Cry Detection Algorithm", "shape": "dot", "title": "Development and Technical Validation of a Smartphone-Based Cry Detection Algorithm"}, {"color": "#97c2fc", "id": "23ce1997237735a2acd2bb149bb5ba74c459a70b", "label": "Revisiting the Contested Role of Natural Resources in Violent Conflict Risk through Machine Learning", "shape": "dot", "title": "Revisiting the Contested Role of Natural Resources in Violent Conflict Risk through Machine Learning"}, {"color": "#97c2fc", "id": "ad4275b65b5efd84bf44414df9c7325e35fd0e20", "label": "Predicting the costs of war", "shape": "dot", "title": "Predicting the costs of war"}, {"color": "#97c2fc", "id": "06548af25270dba0a388f081cb2e748c3581d6e1", "label": "Predictive inference with random forests: A new perspective on classical analyses", "shape": "dot", "title": "Predictive inference with random forests: A new perspective on classical analyses"}, {"color": "#97c2fc", "id": "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f", "label": "International politics by other means: External sources of civil war", "shape": "dot", "title": "International politics by other means: External sources of civil war"}, {"color": "#97c2fc", "id": "21a102c6051950aa3df388edb6c878dde9ff3a0a", "label": "Improving Supreme Court Forecasting Using Boosted Decision Trees", "shape": "dot", "title": "Improving Supreme Court Forecasting Using Boosted Decision Trees"}, {"color": "#97c2fc", "id": "18c332b0bad296f8722677d2d63092bf02e0c210", "label": "Is There More Violence in the Middle?", "shape": "dot", "title": "Is There More Violence in the Middle?"}, {"color": "#97c2fc", "id": "cf83811d697dc3419a52c9853807afb410eb3943", "label": "Tree-Based Models for Political Science Data", "shape": "dot", "title": "Tree-Based Models for Political Science Data"}, {"color": "#97c2fc", "id": "8f7892915feb0bd8b16fbe3812b42e6ad6bf05b2", "label": "Random or Retributive?: Indiscriminate Violence in the Chechen Wars", "shape": "dot", "title": "Random or Retributive?: Indiscriminate Violence in the Chechen Wars"}, {"color": "#97c2fc", "id": "740d66ba0ab59b1bb38aade6ec7d3170abf1288b", "label": "Modeling Complex DDA Purchasing and Use Patterns with", "shape": "dot", "title": "Modeling Complex DDA Purchasing and Use Patterns with"}, {"color": "#97c2fc", "id": "5f651296106c8860f6a40e831e8f5689f036c56f", "label": "Decision Tree Guided Multi-Class Support Vector Machines with Dynamic Class Selections", "shape": "dot", "title": "Decision Tree Guided Multi-Class Support Vector Machines with Dynamic Class Selections"}, {"color": "#97c2fc", "id": "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa", "label": "Predicting the severity of civil wars: An actor-centric approach", "shape": "dot", "title": "Predicting the severity of civil wars: An actor-centric approach"}, {"color": "#97c2fc", "id": "0e23c5aee6d0c086a2a322fcaec9fad628ae1155", "label": "DOES a state \u2019 s use of indiscriminate violence incite insurgent attacks ? The conventional wisdom suggests that it does \u2014", "shape": "dot", "title": "DOES a state \u2019 s use of indiscriminate violence incite insurgent attacks ? The conventional wisdom suggests that it does \u2014"}, {"color": "#97c2fc", "id": "fcf53836216c30e43ea8d671f689704679391b78", "label": "Boosted Decision Tree (BDT) model for political analysis: Using machine learning to assess the Anonymous campaign against Islamic Extremists on Twitter", "shape": "dot", "title": "Boosted Decision Tree (BDT) model for political analysis: Using machine learning to assess the Anonymous campaign against Islamic Extremists on Twitter"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "a4d4053fa12ac75164fe2df0b20a4d3883c292c3"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "da0a744bd257cc50a8778b4452b253bbe3c0b654"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "3a8743b858ed557e3c722095ad4d4158e271e0bd"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "17c7d2aada72fe59c8d282235b26089d526e44ee"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "12e64de7bba4ad1467972309c511d92079477e71"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "b76bdc1d978d921d36069d66b80655ac0aff415b"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "0551d31f66171729c1b011584590d411851444b9"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "6b393d0fe5210993d17458a082ec9a1bfe040b96"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "038c3b0939f17c5f1c6f31ded255f72a014727ed"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "97a520228c0d1d5f7410c529a9d924ce187fee77"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "23ce1997237735a2acd2bb149bb5ba74c459a70b"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "ad4275b65b5efd84bf44414df9c7325e35fd0e20"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "06548af25270dba0a388f081cb2e748c3581d6e1"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "21a102c6051950aa3df388edb6c878dde9ff3a0a"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "18c332b0bad296f8722677d2d63092bf02e0c210"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "cf83811d697dc3419a52c9853807afb410eb3943"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "8f7892915feb0bd8b16fbe3812b42e6ad6bf05b2"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "740d66ba0ab59b1bb38aade6ec7d3170abf1288b"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "5f651296106c8860f6a40e831e8f5689f036c56f"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "0e23c5aee6d0c086a2a322fcaec9fad628ae1155"}, {"arrows": "to", "from": "4b6555beef240120bacb699c7d2f7c8e806b5747", "to": "fcf53836216c30e43ea8d671f689704679391b78"}, {"arrows": "to", "from": "a4d4053fa12ac75164fe2df0b20a4d3883c292c3", "to": "18c332b0bad296f8722677d2d63092bf02e0c210"}, {"arrows": "to", "from": "3a8743b858ed557e3c722095ad4d4158e271e0bd", "to": "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f"}, {"arrows": "to", "from": "3a8743b858ed557e3c722095ad4d4158e271e0bd", "to": "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa"}, {"arrows": "to", "from": "21a102c6051950aa3df388edb6c878dde9ff3a0a", "to": "cf83811d697dc3419a52c9853807afb410eb3943"}, {"arrows": "to", "from": "cf83811d697dc3419a52c9853807afb410eb3943", "to": "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa"}, {"arrows": "to", "from": "cf83811d697dc3419a52c9853807afb410eb3943", "to": "fcf53836216c30e43ea8d671f689704679391b78"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.33,
+            "damping": 0.95,
+            "nodeDistance": 420,
+            "springConstant": 0.1,
+            "springLength": 110
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
