@@ -1,23 +1,45 @@
-In the literature concerning the use of tree-based algorithms for modeling armed civil conflicts, the evolution of methodologies and their effectiveness in various contexts have been extensively studied. This review synthesizes the findings and methodologies utilized across several research papers spanning from 2008 to 2022.
+## Literature Review on the Use of Tree-Based Algorithms in Modeling Armed Civil Conflicts
 
-The earliest work by Weidmann (2008) laid the groundwork for employing machine learning in the prediction of conflict. By using ensemble classifiers and focusing on decision tree learning, attention was drawn to addressing the issue of rare events in conflict data - a recurring theme in subsequent studies. 
+The past two decades have witnessed a surge in the application of tree-based algorithms for conflict analysis, prediction, and understanding the nuanced dynamics that lead to armed civil conflicts. This literature review will synthesize findings from a collection of research efforts spanning over 15 years (2005-2023), appraising not only the evolution of methodologies but also the effectiveness of these techniques in the realm of conflict studies.
 
-Siroky (2009) pursued a more in-depth exploration of Random Forests, tracing its intellectual history and providing an understanding of its non-parametric nature. This marks an early indication of a move away from traditional logistic regression models, which aligns with the findings of Muchlinski (2016) that randomized forests outperform logistic regression in predicting civil war onsets.
+### Early Adoption and Methodological Enhancements
 
-As methods advanced, the literature indicated an emerging preference for algorithmic approaches over classical statistical methods due to their superior predictive capabilities. Jones (2016) introduced 'edarf', elucidating how Random Forests can be applied in exploratory data analysis to detect complex interactions in conflict data.
+In the earlier stages, tree-based algorithms were recognized for their performance superiority over traditional methods such as logistic regression. Weidmann (2008) noted the challenge of predicting rare events, which he addressed using an ensemble of classifiers, underscoring the utility of decision trees in conjunction with other algorithms. This innovation was pivotal in allowing for a more nuanced understanding and prediction of conflict onset.
 
-Freiman (2010) incorporated Simulated Annealing alongside Random Forests to refine parameter selection in predictive models. This study emphasizes the potential pitfalls of overfitting, suggesting a need for careful model evaluation.
+Indeed, the potential for tree-based models to account for non-linear relations and interactions among covariates in predicting the onset and severity of conflicts was highlighted in research by Montgomery (2018) and M. Ward (2005), who argued that traditional models often failed to capture complex relationships inherent in conflict data. Ward particularly critiqued the traditional logistic regression models for their insufficient predictive power in forecasting civil conflict onset.
 
-The role of Random Forests in conflict prediction continued to expand, as indicated by the study of Ettensperger (2021), which further corroborated the utility of multi-model ensemble methods. The shift towards ensembles suggests that combining various tree-based models can harness different strengths and potentially lead to improved predictions.
+### Tackling Rare Events and Class Imbalance
 
-Gradient boosting entered the conversation with the work of Vestby (2022), indicating that while Random Forests might be superior in terms of mean square error, Gradient Boosting might be more effective in specific predictive scenarios. This highlights the evolution of tree-based methodologies and the importance of context and performance metrics in evaluating these models.
+D. Muchlinski (2016) compared Random Forest with logistic regression models explicitly in the context of rare, class-imbalanced data concerning civil war onset. The study highlighted Random Forest’s superior out-of-sample predictive accuracy, establishing a preference for tree-based algorithms in predicting such low-probability but high-impact events.
 
-Further refining the predictive capabilities, Metternich (2019) presented an actor-centric view focusing on the characteristics of rebel organizations, emphasizing the role of actors in predicting conflict severity through Random Forests.
+Likewise, exploring different techniques to overcome class imbalance, Musumba (2021) compared various machine learning (ML) algorithms and introduced the use of the Synthetic Minority Over-sampling Technique (SMOTE) to improve prediction in such situations. The findings posited Gradient Tree Boosting as an effective algorithm, particularly when prioritizing recall as the performance metric.
 
-Alongside these advancements, significant contributions were made to address technical challenges. Darbon (2021) proposed an efficient algorithm to handle high-dimensional sparse logistic regression, hinting at the growing importance of computational efficiency in large-scale conflict data analysis.
+### Advanced Ensemble Approaches and Multi-Model Forecasting
 
-Parallel to the methodological advances, scholars such as Schellens (2020) and Henrickson (2020) have been employing these tree-based algorithms to uncover underlying patterns in conflict data, ranging from the role of natural resources in violent conflicts to the computation of expected war costs.
+Evolving from the implementation of single tree-based models, Ettensperger (2021) showcased the strength of ensemble averaging with multiple tree-based algorithms. By using diverse data configurations and accounting for structural, economic, political, and social factors, this framework significantly enhanced the quality of conflict intensity predictions.
 
-Several studies (e.g., Montgomery, 2018; Musumba, 2021) underscore the applicability of machine learning and tree-based models beyond predictions, also using them to ascertain the relative importance of features and improve our theoretical understanding of conflicts. 
+Håvard Hegre (2022) further advanced this domain via an escalation prediction competition that sourced innovative methodologies from international teams. This communal research effort underscored the importance of blending various contributions to optimally model conflict developments, emphasizing that an ensemble of diverse tree-based models improved prediction capabilities.
 
-In conclusion, tree-based algorithms have significantly evolved and increasingly demonstrated their suitability for modeling complex phenomena such as armed civil conflicts over the last decades. From addressing the rarity of certain events to leveraging ensemble methods for refined predictions, these algorithms have been confirmed to be powerful tools for conflict analysis. Their flexibility and capability to capture non-linear interactions make them superior to traditional regression methods in many scenarios. This evolution has led to a more nuanced and sophisticated understanding of the factors driving armed conflict, permitting researchers to make increasingly accurate predictions, and allowing policymakers to respond more effectively to the threat of civil war.
+### Broader Application and Contemporary Approaches
+
+More recently, Xie (2023) utilized Boosted Regression Trees to model the risk of armed conflict across sub-Saharan Africa, incorporating background contextual factors as prime determinants and accurately depicting spatiotemporal distributions of armed conflict risk with high performance.
+
+Metternich (2019) introduced an actor-centric approach, emphasizing the significance of focusing on the agents of armed violence—government-rebel dyads. In this study, random forests were adept at distinguishing between different levels of conflict severity, highlighting the advantage of specialized predictors that consider organizational characteristics and conflict networks.
+
+### Considerations of Socio-Economic and Demographic Factors
+
+Schellens (2020) discussed the role of natural resources in violent conflicts. The study showed that machine learning models, including Random Forests, can capture interactions between socio-economic conditions and natural resources, revealing nuanced predictors of conflict such as water access and food security.
+
+Population dynamics were also of interest, as Goldstone (2002) and Floros (2008) described the complex interplay between demographic factors and the onset and nature of conflicts. Their research suggested that demographic changes and pressures could be a significant driver for both inter-state and intra-state conflicts.
+
+### Limitations and New Directions
+
+Henrickson (2020) and Toukan (2019) acknowledged the current limitations in the field, noting the lack of a comprehensive measure for the expected costs of war and the complex relationship between a state's international disputes, rivalries, and civil war onset. These gaps signify a potential direction for future research where tree-based models may provide further insights.
+
+### Conclusion
+
+During the exploration of various models' effectiveness in civil conflict analysis, it is evident that tree-based algorithms have evolved to address the inherent complexities and rare-event nature of armed conflicts. From dealing with class imbalance to the integration of economic, social, and geopolitical variables, tree-based methods like Random Forest, Gradient Tree Boosting, and ensemble models have been increasingly favored for their robustness and flexibility (Musumba, 2021; Ettensperger, 2021).
+
+Combining these models' inherent strengths with novel approaches focused on specific actors, context, and ensemble methods have made notable advancements in predicting conflict-related outcomes (Metternich, 2019; Hegre, 2022). Moreover, the incorporation of demographic and socio-economic factors has further enriched the analytical capacity of tree-based algorithms in understanding conflict dynamics (Goldstone, 2002; Schellens, 2020).
+
+Overall, tree-based models have profoundly impacted the political science arena, offering more nuanced predictions and contributing valuable insights for policymakers focused on conflict prevention and resolution.

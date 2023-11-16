@@ -3,10 +3,19 @@ from pyvis.network import Network
 import networkx as nx
 import json
 import streamlit.components.v1 as components
+import os
+import openai
+from openai import OpenAI
 
+## needs to be the first line of code in the app
 st.set_page_config(layout="wide")
 
-def set_bg_color(hex_color):
+## OpenAI API requirements
+openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+## css 
+def styling(hex_color):
     st.markdown(
         f"""
         <style>
@@ -22,19 +31,25 @@ def set_bg_color(hex_color):
         unsafe_allow_html=True
     )
 
-set_bg_color('#F9F5F1')
+styling('#F9F5F1')
 
-
+## ----------------------------------------------
+## Setting Up Data
+## ----------------------------------------------
 
 # Read the JSON data from file
-# filename = '/mount/src/conflicts/horizon_scan/rf_jsons/rf24.json' ## on server
-filename = './rf_jsons/rf24.json' ## on local
+local = False
+filename = 'rf_jsons/rf_edited.json' ## on local
+if not local:
+    filename = '/mount/src/conflicts/horizon_scan/' + filename ## on server
 with open(filename, 'r') as file:
     papers = json.load(file)
 
 len(papers)
 
-
+# ----------------------------------------------
+# FUNCTIONS
+# ----------------------------------------------
 
 # Function to generate and display the network
 ## consider caching with st.cache to make this faster
@@ -56,6 +71,8 @@ def generate_network(search_keyword=None):
 
     ## searching for keywords and adding nodes
     for node, node_attrs in G.nodes(data=True):
+        if not node_attrs['abstract']:
+            node_attrs['abstract'] = 'NA'
         color = '#5C4033' if search_keyword and search_keyword.lower() in node_attrs['abstract'].lower() else '#C8A482'
         net.add_node(node, label=node_attrs['title'], title=node_attrs['abstract'], color=color)
 
@@ -75,18 +92,60 @@ def generate_network(search_keyword=None):
         source_code = html_file.read()
         components.html(source_code, height=750)
 
+def generate_review(directions):
+    basics = {}
+
+    for id, paper in papers.items():
+        paper_info = paper[0]
+        basics[paper_info['paperId']] = {
+            'title': paper_info['title'],
+            'abstract': paper_info['abstract'],
+            'year': paper_info['year'],
+            'author': paper_info['authors'][0]['name'] if paper_info['authors'][0] else None
+        }
+        
+    paper_abstracts = ""
+
+    for id, entry in basics.items():
+        if not entry['abstract']:
+            continue
+        paper_abstracts += "Title: " + entry["title"] + '\n' + "Abstract: " + entry["abstract"] + '\n' + "Author and year: (" + entry["author"] + ', ' + str(entry["year"]) + ')\n\n'
+    
+    client = OpenAI()
+
+    completion = client.chat.completions.create(
+        # turbo (1106-preview) has 128k context window, about 300 pages of text
+        model="gpt-4-1106-preview", # test with: gpt-3.5-turbo, run final: gpt-4-1106-preview
+        messages=[
+            {"role": "system", "content": 
+                """You are a writing a literature review about the use of tree-based algorithms 
+                in modeling armed civil conflicts. I will provide you with multiple existing research 
+                papers on the subject with the paper title, abstract, authors, and year of publication.
+                Please provide a detailed literature review based on these papers, focusing on the 
+                methodologies used, the evolution of these techniques over time, and their effectiveness 
+                in conflict analysis. Please include references in the text in an (author, year) format."""},
+            {"role": "user", "content": f"""Here is a list of the papers and the relevant information: 
+                [start of papers] {paper_abstracts} [end of papers]. 
+                Please also consider the following additional context provided by the user: {directions}"""}
+        ]
+    )
+
+    gpt_summary = completion.choices[0].message.content
+    return gpt_summary
+
+
 
 # ----------------------------------------------
 
 # Title and introduction
-st.title("[wip] kayla's network analysis")
-st.write('an exploration of machine learning and conflict modeling (disclaimer: loading the network takes a few seconds. please be patient!)')
+st.title("mapping research networks")
+st.write('an exploration of machine learning and conflict modeling')
 
 # Keyword search functionality
 col1, col2 = st.columns([3, 1]) 
 
 with col1:
-    search_keyword = st.text_input("search for mentions of keywords (e.g., 'random forest' or 'Syria') in paper abstracts:")
+    search_keyword = st.text_input("search for mentions of keywords (e.g., 'random forest' or 'Africa') in paper abstracts:")
 with col2:
     # Button to generate the network
     search_button = st.button('search network', key='search')
@@ -94,32 +153,47 @@ with col2:
 if search_button:
     generate_network(search_keyword)
 
+st.markdown('---')
+st.markdown('## generate review of literature')
+st.markdown('disclaimer: i don\'t have that much money in my openai account, so please do not click this button an excessive number of times :)')
 
-st.markdown("---")
-st.markdown('**the resulting literature review, as generated by chatgpt:**')
+# Keyword search functionality
+rl_col1, rl_col2 = st.columns([3, 1]) 
 
-st.write("""
-         In the literature concerning the use of tree-based algorithms for modeling armed civil conflicts, the evolution of methodologies and their effectiveness in various contexts have been extensively studied. This review synthesizes the findings and methodologies utilized across several research papers spanning from 2008 to 2022.
+with rl_col1:
+    generation_directions = st.text_input("i\'ve already done some prompting on the backend, but is there anything else you would like gpt to consider when generating the review? (review generation takes a few moments, please be patient!)")
+with rl_col2:
+    # Button to generate the network
+    generate_button = st.button('generate review of literature', key='create_rl')
+    
+if generate_button:
+    st.markdown("#### results of your input")
+    st.write(generate_review(generation_directions))
+else:
+    st.markdown("#### results of the example input")
+    st.markdown("**input:** please create a review that is about 1-2 pages in length and written in the style of a published journal")
+    st.markdown("""**result:** Tree-based algorithms have gained traction over the last two decades as a powerful set of tools for modeling and predicting armed civil conflicts. The use of these algorithms reflects an ongoing methodological shift in the field of conflict analysis—from classic, theory-driven approaches towards more data-driven, machine learning techniques. This literature review synthesizes research papers exploring the use of tree-based algorithms to forecast armed conflicts, focusing on their methodologies, evolution, and effectiveness.
 
-The earliest work by Weidmann (2008) laid the groundwork for employing machine learning in the prediction of conflict. By using ensemble classifiers and focusing on decision tree learning, attention was drawn to addressing the issue of rare events in conflict data - a recurring theme in subsequent studies. 
+Early explorations into machine learning for conflict prediction, like the work of Weidmann (2008), recognized that traditional methods such as logistic regression were often unsuited for the "rare events" nature of armed conflicts. Weidmann's use of bagging with decision trees introduced ensembles to overcome class imbalances—a significant step that would inform future research.
 
-Siroky (2009) pursued a more in-depth exploration of Random Forests, tracing its intellectual history and providing an understanding of its non-parametric nature. This marks an early indication of a move away from traditional logistic regression models, which aligns with the findings of Muchlinski (2016) that randomized forests outperform logistic regression in predicting civil war onsets.
+Muchlinski (2016) compared Random Forests with logistic regression variants and found the former to be superior in out-of-sample predictions of civil war onset. By harnessing the algorithmic power to manage high-dimensional data without assuming linearity, Random Forests allowed for capturing complex interactions within conflict data. The pursuit of improved forecasts continued with scholarly efforts, including Henrickson (2020), who used machine learning techniques, notably Random Forests, to gauge the expected costs of war, thus expanding the potential of the tree-based algorithms beyond conflict onset to the assessment of conflict intensity.
 
-As methods advanced, the literature indicated an emerging preference for algorithmic approaches over classical statistical methods due to their superior predictive capabilities. Jones (2016) introduced 'edarf', elucidating how Random Forests can be applied in exploratory data analysis to detect complex interactions in conflict data.
+Alongside methodology advancements, Ettensperger (2021) introduced an ensemble averaging framework to predict conflict intensity changes, combining multiple tree-based algorithms models and diverse datasets. This ensemble approach, recognizing the interplay between conflict dynamics and socio-economic structures, offered nuanced insights into the predictive capacity of tree-based algorithms.
 
-Freiman (2010) incorporated Simulated Annealing alongside Random Forests to refine parameter selection in predictive models. This study emphasizes the potential pitfalls of overfitting, suggesting a need for careful model evaluation.
+Fascination with the algorithms' predictive power was furthered by Musumba (2021), who directly compared the performance of various supervised classification machine learning algorithms, including gradient tree boosting, against more conventional statistical approaches. SMOTE, a synthetic over-sampling technique, was highlighted for its efficacy in resolving the class imbalance issue, illustrating the continuous methodological enhancements being made within the field.
 
-The role of Random Forests in conflict prediction continued to expand, as indicated by the study of Ettensperger (2021), which further corroborated the utility of multi-model ensemble methods. The shift towards ensembles suggests that combining various tree-based models can harness different strengths and potentially lead to improved predictions.
+Schellens (2020) contributed by delving into the contested role of natural resources in violent conflict. By applying tree-based models, she unearthed the intricate interconnections with socio-economic variables, advancing the interpretive capacity of machine learning over logistic regression models. This work shed light on the nuanced role that features like access to resources could play in conflict prediction models.
 
-Gradient boosting entered the conversation with the work of Vestby (2022), indicating that while Random Forests might be superior in terms of mean square error, Gradient Boosting might be more effective in specific predictive scenarios. This highlights the evolution of tree-based methodologies and the importance of context and performance metrics in evaluating these models.
+McAlexander (2020) further advocated for the use of nonparametric methods like Random Forests. His work demonstrated the potential to uncover subtle nonlinear relationships, affording a fresh perspective on determinants of civil war onset, challenging the preference for traditional linear models.
 
-Further refining the predictive capabilities, Metternich (2019) presented an actor-centric view focusing on the characteristics of rebel organizations, emphasizing the role of actors in predicting conflict severity through Random Forests.
+Trends within the literature shifted to incorporate external dimensions, as illustrated by Toukan (2019), who leveraged logistic regressions and Random Forests to study the international context of civil conflicts. The innovative framing of interstate rivalries suggested that geographic proximity to rivalries increased a state's risk of civil war, illustrating how tree-based models can enrich understanding of complex geopolitical factors in conflict dynamics.
 
-Alongside these advancements, significant contributions were made to address technical challenges. Darbon (2021) proposed an efficient algorithm to handle high-dimensional sparse logistic regression, hinting at the growing importance of computational efficiency in large-scale conflict data analysis.
+Kaufman (2019), pushing the boundaries of political science prediction, applied AdaBoosted decision trees to several political phenomena, including civil war onset prediction. The success of these boosted decision trees called attention to their wide-ranging applicability and led to further considerations of their policy relevance.
 
-Parallel to the methodological advances, scholars such as Schellens (2020) and Henrickson (2020) have been employing these tree-based algorithms to uncover underlying patterns in conflict data, ranging from the role of natural resources in violent conflicts to the computation of expected war costs.
+Ward (2005), one of the earlier studies in this collection, provided a critical reflection on quantitative models of conflict, underscoring the challenges faced by statistical models in accurately predicting civil conflict onsets. This retrospective view highlights the progress made and the need for continual refinement in modeling strategies.
 
-Several studies (e.g., Montgomery, 2018; Musumba, 2021) underscore the applicability of machine learning and tree-based models beyond predictions, also using them to ascertain the relative importance of features and improve our theoretical understanding of conflicts. 
+As demonstrated by Hegre (2022), prediction competitions have proven fruitful in fostering methodological innovation, highlighting the collaborative spirit prevalent in the field. The plethora of contributions from international teams underscored the value of diverse perspectives and the need for new metrics to appreciate the advancements in predictive modeling of conflict.
 
-In conclusion, tree-based algorithms have significantly evolved and increasingly demonstrated their suitability for modeling complex phenomena such as armed civil conflicts over the last decades. From addressing the rarity of certain events to leveraging ensemble methods for refined predictions, these algorithms have been confirmed to be powerful tools for conflict analysis. Their flexibility and capability to capture non-linear interactions make them superior to traditional regression methods in many scenarios. This evolution has led to a more nuanced and sophisticated understanding of the factors driving armed conflict, permitting researchers to make increasingly accurate predictions, and allowing policymakers to respond more effectively to the threat of civil war.
-""")
+Finally, Floros (2008) and Lessing (2012) represent endeavors to integrate demographic factors and the logic of cartel-state conflict into the predictive models, respectively, broadening the scope of tree-based algorithm applications.
+
+In summary, the use of tree-based algorithms in modeling armed civil conflicts has demonstrated a marked evolution from preliminary methods to sophisticated, multi-model ensembles. The accumulated evidence points to their superiority over traditional statistical approaches, particularly in handling non-linearities, complex interactions, and high-dimensional data. While methodological challenges, such as balancing the trade-off between predictive power and model interpretability, persist, tree-based algorithms have proven themselves indispensable in seeking to understand and forecast the multifaceted phenomena of armed conflicts. Further research is expected to refine these models, expand their applicability, and continue the exploration of their predictive potential.""")
