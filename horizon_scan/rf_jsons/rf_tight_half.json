@@ -1,0 +1,582 @@
+{
+    "4b6555beef240120bacb699c7d2f7c8e806b5747": [
+        {
+            "paperId": "4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "url": "https://www.semanticscholar.org/paper/4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "title": "Comparing Random Forest with Logistic Regression for Predicting Class-Imbalanced Civil War Onset Data",
+            "abstract": "The most commonly used statistical models of civil war onset fail to correctly predict most occurrences of this rare event in out-of-sample data. Statistical methods for the analysis of binary data, such as logistic regression, even in their rare event and regularized forms, perform poorly at prediction. We compare the performance of Random Forests with three versions of logistic regression (classic logistic regression, Firth rare events logistic regression, and L 1-regularized logistic regression), and find that the algorithmic approach provides significantly more accurate predictions of civil war onset in out-of-sample data than any of the logistic regression models. The article discusses these results and the ways in which algorithmic statistical methods like Random Forests can be useful to more accurately predict rare events in conflict data.",
+            "year": 2016,
+            "authors": [
+                {
+                    "authorId": "102946994",
+                    "name": "D. Muchlinski"
+                },
+                {
+                    "authorId": "14459832",
+                    "name": "David S. Siroky"
+                },
+                {
+                    "authorId": "37395525",
+                    "name": "Jingrui He"
+                },
+                {
+                    "authorId": "36581389",
+                    "name": "M. Kocher"
+                }
+            ]
+        },
+        [
+            "a4d4053fa12ac75164fe2df0b20a4d3883c292c3",
+            "da0a744bd257cc50a8778b4452b253bbe3c0b654",
+            "3a8743b858ed557e3c722095ad4d4158e271e0bd",
+            "17c7d2aada72fe59c8d282235b26089d526e44ee",
+            "12e64de7bba4ad1467972309c511d92079477e71",
+            "b76bdc1d978d921d36069d66b80655ac0aff415b",
+            "0551d31f66171729c1b011584590d411851444b9",
+            "6b393d0fe5210993d17458a082ec9a1bfe040b96",
+            "038c3b0939f17c5f1c6f31ded255f72a014727ed",
+            "97a520228c0d1d5f7410c529a9d924ce187fee77",
+            "23ce1997237735a2acd2bb149bb5ba74c459a70b",
+            "ad4275b65b5efd84bf44414df9c7325e35fd0e20",
+            "06548af25270dba0a388f081cb2e748c3581d6e1",
+            "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f",
+            "21a102c6051950aa3df388edb6c878dde9ff3a0a",
+            "cf83811d697dc3419a52c9853807afb410eb3943",
+            "740d66ba0ab59b1bb38aade6ec7d3170abf1288b",
+            "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa"
+        ]
+    ],
+    "a4d4053fa12ac75164fe2df0b20a4d3883c292c3": [
+        {
+            "paperId": "a4d4053fa12ac75164fe2df0b20a4d3883c292c3",
+            "url": "https://www.semanticscholar.org/paper/a4d4053fa12ac75164fe2df0b20a4d3883c292c3",
+            "title": "edarf: Exploratory Data Analysis using Random Forests",
+            "abstract": "This package contains functions useful for exploratory data analysis using random forests, which can be fit using the randomForest, randomForestSRC, or party packages (Liaw and Wiener 2002; Ishwaran and Kogalur 2013; Hothorn, Hornik, and Zeileis 2006). These functions can compute the partial dependence of covariates (individually or in combination) on the fitted forests\u2019 predictions, the permutation importance of covariates, as well as the distance between data points according to the fitted model.",
+            "year": 2016,
+            "authors": [
+                {
+                    "authorId": "119300401",
+                    "name": "Z. Jones"
+                },
+                {
+                    "authorId": "39083912",
+                    "name": "Fridolin Linder"
+                }
+            ]
+        },
+        [
+            "25badc676197a70aaf9911865eb03469e402ba57",
+            "b56714e64acbebe7eeffeb2ea665eb7a014ef71b",
+            "84464bbb851210cd5f0e9a3251073398cc70afa4",
+            "4e4d8856a01246679bda0d0d00f5208b0eaa1bb0",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "da0a744bd257cc50a8778b4452b253bbe3c0b654": [
+        {
+            "paperId": "da0a744bd257cc50a8778b4452b253bbe3c0b654",
+            "url": "https://www.semanticscholar.org/paper/da0a744bd257cc50a8778b4452b253bbe3c0b654",
+            "title": "Using Random Forests and Simulated Annealing to Predict Probabilities of Election to the Baseball Hall of Fame",
+            "abstract": "A popular topic of argument among baseball fans is the prospective Hall of Fame status of current and recently retired players. A player's probability of enshrinement is likely to be affected by a large number of different variables, and can be approached by machine learning methods. In particular, I consider the use of random forests for this purpose. A random forest may be considered a black-box method for predicting the probability of Hall of Fame induction, but a number of parameters must be chosen before the forest can be grown. These parameters include fundamental aspects of the nuts and bolts of the construction of the trees that make up the forest, as well as choices among possible predictor variables. For example, one predictor that may be considered is a measure of the player's having seasons with many home runs hit, and there are multiple competing ways of measuring this. Furthermore, certain deterministic methods of searching the parameter space are partially undermined by the randomness underlying the forest's construction and the fact that, by sheer luck, two forests constructed with the same parameters may have differing qualities of fit. Using simulated annealing, I move through the parameter space in a stochastic fashion, trying many forests and sometimes moving toward a set of parameters even though its fit is apparently not as good as preceding ones. Since probabilities defined based on the votes of terminal nodes of a random forest for classification tend to be too moderate, the results of each forest considered are fed into a logistic regression to produce final probability estimates. From among four simulated annealing runs, the forest with the smallest mean squared error was selected, and analysis of the forests near it in the simulated annealing run indicate that its selection was probably not due to extraordinary \"luck.\" Predictions performed using the out-of-bag samples correctly identify 75% of Baseball Writers Association of America Hall of Fame selections, while misclassifying only 1% of non-selections. Results indicate a smaller mean squared error than a previous neural network approach, although the large number of forests tried and discarded raised concerns about overfitting in this case.",
+            "year": 2010,
+            "authors": [
+                {
+                    "authorId": "34945185",
+                    "name": "M. Freiman"
+                }
+            ]
+        },
+        [
+            "2d1e0a5d5309354d4948fa88b01232e59eee94dc",
+            "6c00f0abf4f4e0924fee57fad4bd671bc2499f2c",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "3a8743b858ed557e3c722095ad4d4158e271e0bd": [
+        {
+            "paperId": "3a8743b858ed557e3c722095ad4d4158e271e0bd",
+            "url": "https://www.semanticscholar.org/paper/3a8743b858ed557e3c722095ad4d4158e271e0bd",
+            "title": "Navigating Random Forests and related advances in algorithmic modeling",
+            "abstract": ": This article addresses current methodological research on non-parametric Random Forests. It provides a brief intellectual history of Random Forests that covers CART, boosting and bagging methods. It then introduces the primary methods by which researchers can visualize results, the relationships between covariates and responses, and the out-of-bag test set error. In addition, the article considers current research on universal consistency and importance tests in Random Forests. Finally, several uses for Random Forests are discussed, and available software is identi\ufb01ed.",
+            "year": 2009,
+            "authors": [
+                {
+                    "authorId": "14459832",
+                    "name": "David S. Siroky"
+                }
+            ]
+        },
+        [
+            "34122df837465c1f2025fabc3209964e7a3a205b",
+            "807c1f19047f96083e13614f7ce20f2ac98c239a",
+            "70c87b478d421a54e2a712861fd23e2e45265062",
+            "06211a9e17bd237ba4769da3031b0c6abd3d1561",
+            "37ae405c2744ba13b88da125d27db4350b79f93d",
+            "85ac963bdb62ad9ef9600dd9699f4c6b517fe8e9",
+            "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f",
+            "6473c0fa09409e9f4b3b8bfdb5956066fa75f8ce",
+            "f3ca01fb5a924e422c014f152e4c266e7dcb85d0",
+            "290563c5234a133cbcc7c497485d50ba7cad35ac",
+            "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "17c7d2aada72fe59c8d282235b26089d526e44ee": [
+        {
+            "paperId": "17c7d2aada72fe59c8d282235b26089d526e44ee",
+            "url": "https://www.semanticscholar.org/paper/17c7d2aada72fe59c8d282235b26089d526e44ee",
+            "title": "Conflict Prediction via Machine Learning: Addressing the Rare Events Problem with Bagging",
+            "abstract": "Machine learning deals with the development of algorithms for classification and prediction. However, these algorithms have only in rare cases been used in political science. This poster demonstrates the application of state-of-the-art machine learning techniques to the prediction of conflict. In order to address the rare events problem, I use an ensemble of classifiers built on subsets of the training data. These subsets include all positive cases, and a random selection of negative ones. Although I focus primarily on decision tree learning, the proposed method can be used in conjunction with different classification algorithms in order to improve the prediction of conflict onset.",
+            "year": 2008,
+            "authors": [
+                {
+                    "authorId": "3026227",
+                    "name": "Nils B. Weidmann"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "12e64de7bba4ad1467972309c511d92079477e71": [
+        {
+            "paperId": "12e64de7bba4ad1467972309c511d92079477e71",
+            "url": "https://www.semanticscholar.org/paper/12e64de7bba4ad1467972309c511d92079477e71",
+            "title": "Predicting (de-)escalation of sub-national violence using gradient boosting: Does it work?",
+            "abstract": "Abstract This article presents a prediction model of (de-)escalation of sub-national violence using gradient boosting. The prediction model builds on updated data from the PRIO-GRID data aggregator, contributing to the ViEWS prediction competition by predicting changes in violence levels, operationalized using monthly fatalities at the 0.5\u2009\u00d7\u20090.5-degree grid (pgm) level. Our model's predictive performance in terms of mean square error (MSE) is marginally worse than the ViEWS baseline model and inferior to most other submissions, including our own supervised random forest model. However, while we knew that the model was comparatively worse than our random forest model in terms of MSE, we propose the gradient boosting model because it performed better where it matters\u2014in predicting when (de-)escalation happens. This choice means that we question the usefulness of using MSE for evaluating model performance and instead propose alternative performance measurements that are needed to understand the usefulness of predictive models. We argue that future endeavors using this outcome should measure their performance using the Concordance Correlation, which takes both the trueness and the precision elements of accuracy into account, and, unlike MSE, seems to be robust to the issues caused by zero inflation. Este art\u00edculo presenta un modelo de predicci\u00f3n de la desescalada de la violencia subnacional mediante el uso de la potenciaci\u00f3n del gradiente. El modelo de predicci\u00f3n se basa en los datos actualizados que provienen del agregador de datos de PRIO-GRID, contribuye al concurso de predicciones de ViEWS al predecir cambios en los niveles de violencia y es operacionalizado utilizando las muertes mensuales a nivel de cuadr\u00edcula de 0.5\u2009\u00d7\u20090.5 grados (pgm). El rendimiento predictivo de nuestro modelo desde el punto de vista del error cuadr\u00e1tico medio (mean square error, MSE) es ligeramente peor que el modelo de referencia del sistema de alerta temprana sobre la violencia (Violence Early Warning System, ViEWS) e inferior en relaci\u00f3n con la mayor\u00eda de las otras presentaciones, incluido nuestro modelo de bosque aleatorio y supervisado. No obstante, si bien sab\u00edamos que el modelo era comparativamente peor que nuestro modelo de bosque aleatorio en relaci\u00f3n con el MSE, proponemos el modelo de potenciaci\u00f3n del gradiente porque funcion\u00f3 mejor en el aspecto que importa: predecir cu\u00e1ndo ocurre la desescalada. Esta elecci\u00f3n significa que cuestionamos la utilidad del uso del MSE para evaluar el rendimiento del modelo y, en cambio, proponemos mediciones de rendimiento alternativas que son necesarias para comprender la utilidad de los modelos predictivos. Sostenemos que, en los futuros proyectos en los que se utilice este resultado, se deber\u00eda medir el rendimiento mediante la correlaci\u00f3n de concordancia, la cual tiene en cuenta tanto los elementos de veracidad como los de precisi\u00f3n de la exactitud y, a diferencia del MSE, parece ser resistente a los problemas generados por la inflaci\u00f3n cero. Cet article pr\u00e9sente un mod\u00e8le de pr\u00e9diction de la (d\u00e9s)escalade de la violence infranationale utilisant un boosting de gradient. Ce mod\u00e8le de pr\u00e9diction repose sur des donn\u00e9es \u00e0 jour de l\u2019agr\u00e9gateur de donn\u00e9es de la grille PRIO. Il contribue au concours de pr\u00e9diction ViEWS (Violence early-warning system, syst\u00e8me d\u2019alerte pr\u00e9coce sur la violence) en pr\u00e9disant les \u00e9volutions des niveaux de violence qui sont op\u00e9rationnalis\u00e9s sur la base du nombre mensuel de d\u00e9c\u00e8s au niveau 0.5\u2009\u00d7\u20090.5 degr\u00e9 de la grille (PGM). Les performances pr\u00e9dictives de notre mod\u00e8le en termes d\u2019erreur quadratique moyenne (EQM) sont l\u00e9g\u00e8rement moins bonnes que celles du mod\u00e8le de r\u00e9f\u00e9rence ViEWS et inf\u00e9rieures \u00e0 la plupart des autres mod\u00e8les soumis, y compris \u00e0 celles de notre propre mod\u00e8le \u00e0 for\u00eat al\u00e9atoire supervis\u00e9e. Cependant, bien que nous sachions que ce mod\u00e8le \u00e0 boosting de gradient \u00e9tait comparativement moins bon que notre mod\u00e8le \u00e0 for\u00eat al\u00e9atoire en termes d\u2019EQM, nous l\u2019avons propos\u00e9 car il \u00e9tait plus efficace dans le domaine qui compte : la pr\u00e9diction du moment auquel une (d\u00e9s)escalade interviendrait. Ce choix signifie que nous remettons en question l\u2019utilit\u00e9 de l\u2019utilisation de l\u2019EQM pour \u00e9valuer les performances des mod\u00e8les et nous proposons au lieu de cela des mesures de performances alternatives n\u00e9cessaires pour comprendre l\u2019utilit\u00e9 des mod\u00e8les pr\u00e9dictifs. Nous soutenons que les futurs efforts utilisant ce r\u00e9sultat devraient plut\u00f4t mesurer leurs performances \u00e0 l\u2019aide de la Corr\u00e9lation de concordance, qui prend \u00e0 la fois en compte les \u00e9l\u00e9ments Exactitude et Pr\u00e9cision et qui, contrairement \u00e0 l\u2019EQM, semble \u00eatre robuste face aux probl\u00e8mes caus\u00e9s par l\u2019inflation z\u00e9ro.",
+            "year": 2022,
+            "authors": [
+                {
+                    "authorId": "107688483",
+                    "name": "Jonas Vestby"
+                },
+                {
+                    "authorId": "114981495",
+                    "name": "J\u00fcrgen Brandsch"
+                },
+                {
+                    "authorId": "2075494686",
+                    "name": "V. B. Larsen"
+                },
+                {
+                    "authorId": "2089662047",
+                    "name": "Peder Landsverk"
+                },
+                {
+                    "authorId": "51009096",
+                    "name": "A. Tollefsen"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "b76bdc1d978d921d36069d66b80655ac0aff415b": [
+        {
+            "paperId": "b76bdc1d978d921d36069d66b80655ac0aff415b",
+            "url": "https://www.semanticscholar.org/paper/b76bdc1d978d921d36069d66b80655ac0aff415b",
+            "title": "Forecasting conflict using a diverse machine-learning ensemble: Ensemble averaging with multiple tree-based algorithms and variance promoting data configurations",
+            "abstract": "Abstract The article examines the potential of multi-model ensemble learning techniques for conflict research and applies an ensemble averaging framework to the prediction task of the 2020 ViEWS armed conflict forecasting competition. The goal is to predict changes of conflict intensity in fifty-four African countries for 6 months into the future. The presented ensemble combines six individual models, using two tree-based learning algorithms, incorporating two distinct data foundations and two geographical selections into a unified forecasting framework. In one of the two applied datasets, the combination of conflict variables from recent months is implemented to train for inter-temporal connections of previous conflict levels. The second dataset contains important structural, economic, political, and social information relevant for each individual case. Both datasets are used to predict changes in conflict levels. The framework structure and the combination method are presented in detail, and the prediction results for both test periods between 2014\u20132016 and 2016\u20132019 are evaluated regarding their quality. The effect of the ensemble structure and the performance of all individual components is comprehensively examined. Real forecasts over the timespan of six months into the future are presented for the upcoming months of October 2020 through March 2021 generated from data available until August 2020. The paper concludes with the presentation and examination of three selected case forecasts for Egypt, Cameroon, and Mozambique. El art\u00edculo examina el potencial de las t\u00e9cnicas de aprendizaje de conjuntos multimodelos para la investigaci\u00f3n de conflictos y aplica un marco de promedio de conjuntos a la tarea de predicci\u00f3n del concurso de previsi\u00f3n de conflictos armados; ViEWS 2020. La meta es predecir los cambios en la intensidad de los conflictos en cincuenta y cuatro pa\u00edses africanos durante seis meses en el futuro. El conjunto presentado combina seis modelos individuales, que utilizan dos algoritmos de aprendizaje basados en \u00e1rboles, y que incorporan dos bases de datos distintas y dos selecciones geogr\u00e1ficas en un marco de previsi\u00f3n unificado. En uno de los dos conjuntos de datos aplicados, se implementa la combinaci\u00f3n de variables de conflicto de los \u00faltimos meses para estudiar las conexiones intertemporales de los niveles de conflicto anteriores. El segundo conjunto de datos contiene informaci\u00f3n estructural, econ\u00f3mica, pol\u00edtica y social importante para cada caso individual. Ambos conjuntos de datos se utilizan para predecir los cambios en los niveles de conflicto. La estructura del marco y el m\u00e9todo de combinaci\u00f3n se presentan en detalle, y se eval\u00faa la calidad de los resultados de la predicci\u00f3n para ambos per\u00edodos de prueba entre 2014-2016 y 2016-2019. Se analiza a fondo el efecto de la estructura del conjunto y el funcionamiento de todos los componentes individuales. Se presentan previsiones reales a seis meses, para los pr\u00f3ximos meses de octubre de 2020 a marzo de 2021, generados a partir de los datos disponibles hasta agosto de 2020. El art\u00edculo concluye con la presentaci\u00f3n y el an\u00e1lisis de tres previsiones de casos seleccionados de Egipto, Camer\u00fan y Mozambique. Cet article examine le potentiel des techniques d\u2019apprentissage ensembliste multi-mod\u00e8les pour les recherches sur les conflits et applique un cadre de moyennage ensembliste \u00e0 la t\u00e2che de pr\u00e9diction du concours de pr\u00e9vision des conflits arm\u00e9s ViEWS (violence early-warning system, syst\u00e8me d\u2019alerte pr\u00e9coce sur la violence) 2020. L\u2019objectif est de pr\u00e9dire les changements d\u2019intensit\u00e9 des conflits dans cinquante-quatre pays africains sur les six mois \u00e0 venir. L\u2019ensemble pr\u00e9sent\u00e9 combine six mod\u00e8les individuels en utilisant deux algorithmes d\u2019apprentissage bas\u00e9s sur des arbres et en int\u00e9grant deux fondations de donn\u00e9es distinctes et deux s\u00e9lections g\u00e9ographiques \u00e0 une infrastructure de pr\u00e9vision unifi\u00e9e. Dans l\u2019un des deux jeux de donn\u00e9es appliqu\u00e9s, la combinaison des variables de conflit des derniers mois est impl\u00e9ment\u00e9e pour entra\u00eener les algorithmes sur les relations inter-temporelles des intensit\u00e9s de conflits pr\u00e9c\u00e9dentes. Le deuxi\u00e8me jeu de donn\u00e9es contient d\u2019importantes informations structurelles, \u00e9conomiques, politiques et sociales concernant chacun des cas individuels. Les deux jeux de donn\u00e9es sont utilis\u00e9s pour pr\u00e9dire les changements d\u2019intensit\u00e9 des conflits. La structure de l\u2019infrastructure et la m\u00e9thode de combinaison sont pr\u00e9sent\u00e9es en d\u00e9tails et la qualit\u00e9 des r\u00e9sultats des pr\u00e9dictions est \u00e9valu\u00e9e pour les deux p\u00e9riodes de test, 2014-2016 et 2016-2019. L\u2019effet de la structure ensembliste et les performances de toutes les composantes individuelles sont examin\u00e9s en profondeur. Les pr\u00e9visions r\u00e9elles sur une p\u00e9riode de six mois sont pr\u00e9sent\u00e9es pour les mois \u00e0 venir qui \u00e9taient octobre 2020 \u00e0 mars 2021. Ces pr\u00e9visions avaient \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9es \u00e0 partir des donn\u00e9es disponibles jusqu\u2019ao\u00fbt 2020. L\u2019article conclut par une pr\u00e9sentation et un examen d\u2019une s\u00e9lection de pr\u00e9visions pour trois cas, ceux de l\u2019\u00c9gypte, du Cameroun et du Mozambique. Video Abstract Read the transcript Watch the video on Vimeo",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "119547963",
+                    "name": "Felix Ettensperger"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "0551d31f66171729c1b011584590d411851444b9": [
+        {
+            "paperId": "0551d31f66171729c1b011584590d411851444b9",
+            "url": "https://www.semanticscholar.org/paper/0551d31f66171729c1b011584590d411851444b9",
+            "title": "Efficient and robust high-dimensional sparse logistic regression via nonlinear primal-dual hybrid gradient algorithms",
+            "abstract": "Logistic regression is a widely used statistical model to describe the relationship between a binary response variable and predictor variables in data sets. It is often used in machine learning to identify important predictor variables. This task, variable selection, typically amounts to fitting a logistic regression model regularized by a convex combination of l1 and l 2 2 penalties. Since modern big data sets can contain hundreds of thousands to billions of predictor variables, variable selection methods depend on efficient and robust optimization algorithms to perform well. State-of-the-art algorithms for variable selection, however, were not traditionally designed to handle big data sets; they either scale poorly in size or are prone to produce unreliable numerical results. It therefore remains challenging to perform variable selection on big data sets without access to adequate and costly computational resources. In this paper, we propose a nonlinear primal-dual algorithm that addresses these shortcomings. Specifically, we propose an iterative algorithm that provably computes a solution to a logistic regression problem regularized by an elastic net penalty inO(T (m,n) log(1/\u01eb)) operations, where \u01eb \u2208 (0, 1) denotes the tolerance and T (m,n) denotes the number of arithmetic operations required to perform matrix-vector multiplication on a data set with m samples each comprising n features. This result improves on the known complexity bound of O(min(mn,mn) log(1/\u01eb)) for first-order optimization methods such as the classic primal-dual hybrid gradient or forward-backward splitting methods. Significance statement Logistic regression is a widely used statistical model to describe the relationship between a binary response variable and predictor variables in data sets. With the trends in big data, logistic regression is now commonly applied to data sets whose predictor variables range from hundreds of thousands to billions. State-of-the-art algorithms for fitting logistic regression models, however, were not traditionally designed to handle big data sets; they either scale poorly in size or are prone to produce unreliable numerical results. This paper proposes a nonlinear primal-dual algorithm that provably computes a solution to a logistic regression problem regularized by an elastic net penalty in O(T (m,n) log(1/\u01eb)) operations, where \u01eb \u2208 (0, 1) denotes the tolerance and T (m,n) denotes the number of arithmetic operations required to perform matrix-vector multiplication on a data set with m samples each comprising n features. This result improves on the known complexity bound of O(min(m2n,mn2) log(1/\u01eb)) for first-order optimization methods such as the classic primal-dual hybrid gradient or forward-backward splitting methods.",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "2221048",
+                    "name": "J. Darbon"
+                },
+                {
+                    "authorId": "1869393",
+                    "name": "G. P. Langlois"
+                }
+            ]
+        },
+        [
+            "2982952a884a8d27fbcd800c010d8f4af564181b",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "6b393d0fe5210993d17458a082ec9a1bfe040b96": [
+        {
+            "paperId": "6b393d0fe5210993d17458a082ec9a1bfe040b96",
+            "url": "https://www.semanticscholar.org/paper/6b393d0fe5210993d17458a082ec9a1bfe040b96",
+            "title": "Machine Learning Prediction Models for Mortality in Intensive Care Unit Patients with Lactic Acidosis",
+            "abstract": "Background: Lactic acidosis is the most common cause of anion gap metabolic acidosis in the intensive care unit (ICU), associated with poor outcomes including mortality. We sought to compare machine learning (ML) approaches versus logistic regression analysis for prediction of mortality in lactic acidosis patients admitted to the ICU. Methods: We used the Medical Information Mart for Intensive Care (MIMIC-III) database to identify ICU adult patients with lactic acidosis (serum lactate \u22654 mmol/L). The outcome of interest was hospital mortality. We developed prediction models using four ML approaches consisting of random forest (RF), decision tree (DT), extreme gradient boosting (XGBoost), artificial neural network (ANN), and statistical modeling with forward stepwise logistic regression using the testing dataset. We then assessed model performance using area under the receiver operating characteristic curve (AUROC), accuracy, precision, error rate, Matthews correlation coefficient (MCC), F1 score, and assessed model calibration using the Brier score, in the independent testing dataset. Results: Of 1919 lactic acidosis ICU patients, 1535 and 384 were included in the training and testing dataset, respectively. Hospital mortality was 30%. RF had the highest AUROC at 0.83, followed by logistic regression 0.81, XGBoost 0.81, ANN 0.79, and DT 0.71. In addition, RF also had the highest accuracy (0.79), MCC (0.45), F1 score (0.56), and lowest error rate (21.4%). The RF model was the most well-calibrated. The Brier score for RF, DT, XGBoost, ANN, and multivariable logistic regression was 0.15, 0.19, 0.18, 0.19, and 0.16, respectively. The RF model outperformed multivariable logistic regression model, SOFA score (AUROC 0.74), SAP II score (AUROC 0.77), and Charlson score (AUROC 0.69). Conclusion: The ML prediction model using RF algorithm provided the highest predictive performance for hospital mortality among ICU patient with lactic acidosis.",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "8628831",
+                    "name": "P. Pattharanitima"
+                },
+                {
+                    "authorId": "3464205",
+                    "name": "C. Thongprayoon"
+                },
+                {
+                    "authorId": "5915160",
+                    "name": "W. Kaewput"
+                },
+                {
+                    "authorId": "2141061827",
+                    "name": "F. Qureshi"
+                },
+                {
+                    "authorId": "2049100220",
+                    "name": "Fahad Qureshi"
+                },
+                {
+                    "authorId": "82662825",
+                    "name": "T. Petnak"
+                },
+                {
+                    "authorId": "3732077",
+                    "name": "N. Srivali"
+                },
+                {
+                    "authorId": "13463088",
+                    "name": "G. Gembillo"
+                },
+                {
+                    "authorId": "1401390429",
+                    "name": "O. O'corragain"
+                },
+                {
+                    "authorId": "48065763",
+                    "name": "S. Chesdachai"
+                },
+                {
+                    "authorId": "5958866",
+                    "name": "S. Vallabhajosyula"
+                },
+                {
+                    "authorId": "3621748",
+                    "name": "P. Guru"
+                },
+                {
+                    "authorId": "3117044",
+                    "name": "M. Mao"
+                },
+                {
+                    "authorId": "6544457",
+                    "name": "V. Garovic"
+                },
+                {
+                    "authorId": "143762442",
+                    "name": "J. Dillon"
+                },
+                {
+                    "authorId": "4112984",
+                    "name": "W. Cheungpasitporn"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "038c3b0939f17c5f1c6f31ded255f72a014727ed": [
+        {
+            "paperId": "038c3b0939f17c5f1c6f31ded255f72a014727ed",
+            "url": "https://www.semanticscholar.org/paper/038c3b0939f17c5f1c6f31ded255f72a014727ed",
+            "title": "Prevention Is Better Than Cure: Machine Learning Approach to Conflict Prediction in Sub-Saharan Africa",
+            "abstract": "This article offers policymakers and researchers pragmatic and sustainable approaches to identify and mitigate conflict threats by looking beyond p-values and plausible instruments. We argue that predicting conflict successfully depends on the choice of algorithms, which, if chosen accurately, can reduce economic and social instabilities caused by post-conflict reconstruction. After collating data with variables linked to conflict, we used a grid level dataset of 5928 observations spanning 48 countries across sub-Saharan Africa to predict civil conflict. The goals of the study were to assess the performance of supervised classification machine learning (ML) algorithms in comparison with logistic model, assess the implication of selecting a specific performance metric on policy initiatives, and evaluate the value of interpretability of the selected model. After comparing class imbalance resampling methods, the synthetic minority over-sampling technique (SMOTE) was employed to improve out-of-sample prediction for the trained model. The results indicate that if our selected performance metric is recall, gradient tree boosting is the best algorithm; however, if precision or F1 score is the selected metric, then the multilayer perceptron algorithm produces the best model.",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "4464922",
+                    "name": "Mark Musumba"
+                },
+                {
+                    "authorId": "82984817",
+                    "name": "Naureen Fatema"
+                },
+                {
+                    "authorId": "89884662",
+                    "name": "Shahriar Kibriya"
+                }
+            ]
+        },
+        [
+            "43ee50625eb6788a1f6b8819d2a714e869caa0e3",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "9925fd0e4b12f36c80bb4240cc098619e3f195d1"
+        ]
+    ],
+    "97a520228c0d1d5f7410c529a9d924ce187fee77": [
+        {
+            "paperId": "97a520228c0d1d5f7410c529a9d924ce187fee77",
+            "url": "https://www.semanticscholar.org/paper/97a520228c0d1d5f7410c529a9d924ce187fee77",
+            "title": "Development and Technical Validation of a Smartphone-Based Cry Detection Algorithm",
+            "abstract": "Introduction: The duration and frequency of crying of an infant can be indicative of its health. Manual tracking and labeling of crying is laborious, subjective, and sometimes inaccurate. The aim of this study was to develop and technically validate a smartphone-based algorithm able to automatically detect crying. Methods: For the development of the algorithm a training dataset containing 897 5-s clips of crying infants and 1,263 clips of non-crying infants and common domestic sounds was assembled from various online sources. OpenSMILE software was used to extract 1,591 audio features per audio clip. A random forest classifying algorithm was fitted to identify crying from non-crying in each audio clip. For the validation of the algorithm, an independent dataset consisting of real-life recordings of 15 infants was used. A 29-min audio clip was analyzed repeatedly and under differing circumstances to determine the intra- and inter- device repeatability and robustness of the algorithm. Results: The algorithm obtained an accuracy of 94% in the training dataset and 99% in the validation dataset. The sensitivity in the validation dataset was 83%, with a specificity of 99% and a positive- and negative predictive value of 75 and 100%, respectively. Reliability of the algorithm appeared to be robust within- and across devices, and the performance was robust to distance from the sound source and barriers between the sound source and the microphone. Conclusion: The algorithm was accurate in detecting cry duration and was robust to various changes in ambient settings.",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "118944274",
+                    "name": "A. Zhuparris"
+                },
+                {
+                    "authorId": "15122355",
+                    "name": "M. Kruizinga"
+                },
+                {
+                    "authorId": "2086763029",
+                    "name": "Max van Gent"
+                },
+                {
+                    "authorId": "2072922153",
+                    "name": "Eva Dessing"
+                },
+                {
+                    "authorId": "2489309",
+                    "name": "V. Exadaktylos"
+                },
+                {
+                    "authorId": "2070309743",
+                    "name": "R. Doll"
+                },
+                {
+                    "authorId": "49077467",
+                    "name": "F. Stuurman"
+                },
+                {
+                    "authorId": "2084148475",
+                    "name": "Gertjan J. A. Driessen"
+                },
+                {
+                    "authorId": "1683123",
+                    "name": "A. Cohen"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "23ce1997237735a2acd2bb149bb5ba74c459a70b": [
+        {
+            "paperId": "23ce1997237735a2acd2bb149bb5ba74c459a70b",
+            "url": "https://www.semanticscholar.org/paper/23ce1997237735a2acd2bb149bb5ba74c459a70b",
+            "title": "Revisiting the Contested Role of Natural Resources in Violent Conflict Risk through Machine Learning",
+            "abstract": "The integrated character of the sustainable development goals in Agenda 2030, as well as research in environmental security, flag that sustainable peace requires sustainable and conflict-sensitive natural resource use. The precise relationship between the risk for violent conflict and natural resources remains contested because of the interplay with socio-economic variables. This paper aims to improve the understanding of natural resources\u2019 role in the risk of violent conflicts by accounting for complex interactions with socio-economic conditions. Conflict data was analysed with machine learning techniques, which can account for complex patterns, such as variable interactions. More commonly used logistic regression models are compared with neural network models and random forest models. The results indicate that a country\u2019s natural resource features are important predictors of its risk for violent conflict and that they interact with socio-economic conditions. Based on these empirical results and the existing literature, we interpret that natural resources can be root causes of violent intrastate conflict, and that signals from natural resources leading to conflict risk are reflected in and influenced by interacting socio-economic conditions. More specifically, the results show that variables such as access to water and food security are important predictors of conflict, while resource rents and oil and ore exports are relatively less important than other natural resource variables, contrasting what prior research has suggested. Given the potential of natural resource features to act as an early warning for violent conflict, we argue that natural resources should be included in conflict risk models for conflict prevention.",
+            "year": 2020,
+            "authors": [
+                {
+                    "authorId": "122313644",
+                    "name": "Marie K. Schellens"
+                },
+                {
+                    "authorId": "2001999",
+                    "name": "S. Belyazid"
+                }
+            ]
+        },
+        [
+            "2e128cd02947725de76622dc04435b217fe4d56d",
+            "7d5815d9f660054e9cfc458de1b4a120acdbf9de",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "ad4275b65b5efd84bf44414df9c7325e35fd0e20": [
+        {
+            "paperId": "ad4275b65b5efd84bf44414df9c7325e35fd0e20",
+            "url": "https://www.semanticscholar.org/paper/ad4275b65b5efd84bf44414df9c7325e35fd0e20",
+            "title": "Predicting the costs of war",
+            "abstract": "The expected cost of war is a foundational concept in the study of international conflict. However, the field currently lacks a measure of the expected costs of war, and thereby any measure of the bargaining range. In this paper, I develop a proxy for the expected costs of war by focusing on one aspect of war costs \u2013 battle deaths. I train a variety of machine learning algorithms on battle deaths for all countries participating in fatal military disputes and interstate wars between 1816 and 2007 in order to maximize out-of-sample predictive performance. The best performing model (random forest) improves performance over that of a null model by 25% and a linear model with all predictors by 9%. I apply the random forest to all interstate dyads in the Correlates of War dataverse from 1816 to 2007 in order to produce an estimate of the expected costs of war for all existing country pairs in the international system. The resulting measure, which I refer to as Dispute Casualty Expectations, can be used to fully explore the implications of the bargaining model of war, as well as allow applied researchers to develop and test new theories in the study of international relations.",
+            "year": 2020,
+            "authors": [
+                {
+                    "authorId": "102067964",
+                    "name": "Phil Henrickson"
+                }
+            ]
+        },
+        [
+            "13d9dbab07cf66c1afad32706b9355395a92befb",
+            "6ba9afd9241a5d04e2ce890f0a6f082d167968b8",
+            "38ef724130e211b997df7df172073c500b14e87e",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "06548af25270dba0a388f081cb2e748c3581d6e1": [
+        {
+            "paperId": "06548af25270dba0a388f081cb2e748c3581d6e1",
+            "url": "https://www.semanticscholar.org/paper/06548af25270dba0a388f081cb2e748c3581d6e1",
+            "title": "Predictive inference with random forests: A new perspective on classical analyses",
+            "abstract": "Despite the number of problems that can occur when core model assumptions are violated, nearly all quantitative political science research relies on inflexible regression models that require a linear relationship between dependent and independent variables for valid inference. We argue that nonparametric statistical learning methods like random forests are capable of combining the benefits of interpretability and flexibility. Recent work has shown that under suitable regularity conditions, averaging over predictions made by subsampled random forests produces asymptotically normal predictions. After estimating the variance, this property can be exploited to produce hypothesis tests and confidence intervals analogous to those produced within a parametric framework. We demonstrated the utility of this approach by replicating an important study on the determinants of civil war onset and show that subtle nonlinear relationships are uncovered, providing a new perspective on these ongoing research questions.",
+            "year": 2020,
+            "authors": [
+                {
+                    "authorId": "119158905",
+                    "name": "Richard J. McAlexander"
+                },
+                {
+                    "authorId": "3422652",
+                    "name": "L. Mentch"
+                }
+            ]
+        },
+        [
+            "3e9a1daf09d089dd365142291ac8e4d68d4afb6b",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f": [
+        {
+            "paperId": "3f1ecd5c4c4db5233596e870a2e19b5bc15e435f",
+            "url": "https://www.semanticscholar.org/paper/3f1ecd5c4c4db5233596e870a2e19b5bc15e435f",
+            "title": "International politics by other means: External sources of civil war",
+            "abstract": "The literature on civil wars has recently turned towards their international context but lacks an account for how conflict beyond a state\u2019s borders contributes to civil war onset. I argue that interstate rivalries can increase the risk of civil war in other states when rivals come to associate the foreign-policy orientation of other states with their own security. I present three pathways through which rivals increase the risk of civil war in other states. First, competition between rivals creates a ratchet effect by which the prospect of one\u2019s involvement in a conflict makes it more likely that the other becomes involved. This dynamic makes support easier to secure and lowers the expected costs of war for governments and opposition groups. Second, rivals encourage domestic polarization as parties attempt to capture their influence, making domestic conflicts more intractable. Third, uncertainty over the potential for intervention by rivals increases the risk of miscalculation. I test the implications of the theory with novel spatial measures of interstate conflict and rivalry. Using logistic regressions and random forests, I find that being in the neighborhood of interstate rivals can increase a state\u2019s risk of civil war.",
+            "year": 2019,
+            "authors": [
+                {
+                    "authorId": "151140261",
+                    "name": "Mark Toukan"
+                }
+            ]
+        },
+        [
+            "3a8743b858ed557e3c722095ad4d4158e271e0bd",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "4894e3a3ba9778117453f15c17cfbd9c6280cf47"
+        ]
+    ],
+    "21a102c6051950aa3df388edb6c878dde9ff3a0a": [
+        {
+            "paperId": "21a102c6051950aa3df388edb6c878dde9ff3a0a",
+            "url": "https://www.semanticscholar.org/paper/21a102c6051950aa3df388edb6c878dde9ff3a0a",
+            "title": "Improving Supreme Court Forecasting Using Boosted Decision Trees",
+            "abstract": "Though used frequently in machine learning, boosted decision trees are largely unused in political science, despite many useful properties. We explain how to use one variant of boosted decision trees, AdaBoosted decision trees (ADTs), for social science predictions. We illustrate their use by examining a well-known political prediction problem, predicting U.S. Supreme Court rulings. We find that our ADT approach outperforms existing predictive models. We also provide two additional examples of the approach, one predicting the onset of civil wars and the other predicting county-level vote shares in U.S. presidential elections.",
+            "year": 2019,
+            "authors": [
+                {
+                    "authorId": "1664881015",
+                    "name": "A. Kaufman"
+                },
+                {
+                    "authorId": "2068930056",
+                    "name": "Peter Kraft"
+                },
+                {
+                    "authorId": "34435183",
+                    "name": "M. Sen"
+                }
+            ]
+        },
+        [
+            "cf83811d697dc3419a52c9853807afb410eb3943",
+            "6ba9afd9241a5d04e2ce890f0a6f082d167968b8",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "e471ea9a00387de0e3db01195ea3175589372c10",
+            "ef90c891ff97918171a7035f86df29dd78890950"
+        ]
+    ],
+    "cf83811d697dc3419a52c9853807afb410eb3943": [
+        {
+            "paperId": "cf83811d697dc3419a52c9853807afb410eb3943",
+            "url": "https://www.semanticscholar.org/paper/cf83811d697dc3419a52c9853807afb410eb3943",
+            "title": "Tree-Based Models for Political Science Data",
+            "abstract": "Political scientists often find themselves analyzing data sets with a large number of observations, a large number of variables, or both. Yet, traditional statistical techniques fail to take full advantage of the opportunities inherent in \u201cbig data,\u201d as they are too rigid to recover nonlinearities and do not facilitate the easy exploration of interactions in high-dimensional data sets. In this article, we introduce a family of tree-based nonparametric techniques that may, in some circumstances, be more appropriate than traditional methods for confronting these data challenges. In particular, tree models are very effective for detecting nonlinearities and interactions, even in data sets with many (potentially irrelevant) covariates. We introduce the basic logic of tree-based models, provide an overview of the most prominent methods in the literature, and conduct three analyses that illustrate how the methods can be implemented while highlighting both their advantages and limitations. Replication Materials: The data, code, and any additional materials required to replicate all analyses in this article are available on the American Journal of Political Science Dataverse within the Harvard Dataverse Network at: https://doi.org/10.7910/DVN/8ZJBLI. Social science scholars often work with data sets containing a large number of observations, many potential covariates, or (increasingly) both. Indeed, political scientists now regularly analyze data with levels of complexity unimaginable just two decades ago. Widely used surveys, for instance, interview tens of thousands of respondents about hundreds of topics. Scholars of institutions can quickly assemble data sets with thousands of observations using resources like the Comparative Agendas Project. Moreover, new measurement methods, such as text analysis, have combined with data sources, such as Twitter, to generate databases of almost unmanageable sizes. It is clear that political science, like all areas of the social sciences, will increasingly have access to a deluge of data so vast that it will dwarf everything that has come before. What statistical methods are needed in this datasaturated world? Surely, there is no one correct answer. Yet, just as surely, traditional statistical models are not always equipped to take full advantage of new data sources. Traditional models\u2014largely variants of linear regressions\u2014are ideal for evaluating theories that imply specific functional forms relating outcomes to predictors. In particular, they excel in their ability to leverage assumptions about the data-generating process, or DGP (additivity, linearity in the parameters, homoskedasticity, Jacob M. Montgomery is Associate Professor, Department of Political Science, Washington University in St. Louis, Campus Box 1063, One Brookings Drive, St. Louis, MO 63130 (jacob.montgomery@wustl.edu). Santiago Olivella is Assistant Professor, Department of Political Science, University of North Carolina at Chapel Hill, Hamilton Hall 361, CB 3265, Chapel Hill, NC 27599 (olivella@unc.edu). etc.) to make valid inferences despite inherent data limitations. Although appropriate when testing theories that conform with these assumptions, standard models are often insufficiently flexible to capture nuances in the data\u2014such as complex nonlinear functional forms and deep interactions\u2014when no clear a priori expectations exist. In this article, we introduce a family of tree-based nonparametric techniques from the machine learning literature. We argue that, under specific circumstances, regression and classification tree models are an appropriate standard choice for analyzing high-dimensional data sets. In particular, past research has shown tree-based methods to be very useful for making accurate predictions when the underlying DGP includes nonlinearities, discontinuities, and interactions among many covariates. Further, tree models require few assumptions. Rather than imposing a presumed structure on the DGP, tree-based methods allow the data to \u201cspeak for themselves.\u201d Thus, our goal in this article is to introduce political scientists to this promising family of methods, which are well suited for today\u2019s data analysis demands. In the next sections, we discuss the promise and perils of high-dimensional, \u201clarge\u201d-N data sets and introduce the basic logic of tree models. We then provide an overview of the most prominent methods in the literature. American Journal of Political Science, Vol. 62, No. 3, July 2018, Pp. 729\u2013744 C \u00a92018, Midwest Political Science Association DOI: 10.1111/ajps.12361",
+            "year": 2018,
+            "authors": [
+                {
+                    "authorId": "6546316",
+                    "name": "J. Montgomery"
+                },
+                {
+                    "authorId": "1847400",
+                    "name": "S. Olivella"
+                }
+            ]
+        },
+        [
+            "4b6555beef240120bacb699c7d2f7c8e806b5747",
+            "19272846fdfc9445cdc45edb8fcaa072df74caa5",
+            "21a102c6051950aa3df388edb6c878dde9ff3a0a",
+            "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa"
+        ]
+    ],
+    "740d66ba0ab59b1bb38aade6ec7d3170abf1288b": [
+        {
+            "paperId": "740d66ba0ab59b1bb38aade6ec7d3170abf1288b",
+            "url": "https://www.semanticscholar.org/paper/740d66ba0ab59b1bb38aade6ec7d3170abf1288b",
+            "title": "Modeling Complex DDA Purchasing and Use Patterns with",
+            "abstract": "This paper describes a project aimed at exploring the practical application of machine learning in the library environment by way of demand-driven acquisitions (DDA). This research uses DDA program purchasing data to build predictive models of future DDA purchasing by two separate methods. A model utilizing the Adaptive Boosting (AdaBoost) algorithm is compared against a model utilizing a more traditional logistic regression method, to determine what benefits, if any, machine learning offers toward predicting DDA purchasing patterns. This paper also explores, if only superficially, additional questions surrounding applied machine learning in the academic library setting and its meaning in relation to established library assessment practice.",
+            "year": 2021,
+            "authors": [
+                {
+                    "authorId": "2054044471",
+                    "name": "Kevin W. Walker"
+                },
+                {
+                    "authorId": "49165537",
+                    "name": "Zhehan Jiang"
+                }
+            ]
+        },
+        [
+            "bd52ed6a7dfefaee7df6e7d925095503d95bcca1",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ],
+    "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa": [
+        {
+            "paperId": "3ac3adc38e2a5fa06e635c4a2a873529ecb981fa",
+            "url": "https://www.semanticscholar.org/paper/3ac3adc38e2a5fa06e635c4a2a873529ecb981fa",
+            "title": "Predicting the severity of civil wars: An actor-centric approach",
+            "abstract": "We introduce an actor-centric approach to predict the severity of conflict one and six months into the future. We argue that the prediction of conflict severity needs to focus on the actors that are responsible for conducting armed violence. Hence, we predict the severity of conflict in government-rebel organization dyads. Our predictors focus especially on rebel organization characteristics, behavior, and the conflict networks actors are embedded in. Our statistical learning approach relies on random forests to predict the severity of conflict. We demonstrate that our model performs especially well distinguishing high levels of severity from very low levels.",
+            "year": 2019,
+            "authors": [
+                {
+                    "authorId": "5742418",
+                    "name": "Nils W. Metternich"
+                },
+                {
+                    "authorId": "120153969",
+                    "name": "Gokhan Ciflikli"
+                },
+                {
+                    "authorId": "2112251126",
+                    "name": "Altaf Ali"
+                },
+                {
+                    "authorId": "2105632371",
+                    "name": "Sigrid Weber"
+                },
+                {
+                    "authorId": "2131982051",
+                    "name": "Kit Rickard"
+                },
+                {
+                    "authorId": "2132095782",
+                    "name": "Gareth Lomax"
+                }
+            ]
+        },
+        [
+            "cf83811d697dc3419a52c9853807afb410eb3943",
+            "2f735ee65edd5331bf0f4ceed6677ae789407163",
+            "3a8743b858ed557e3c722095ad4d4158e271e0bd",
+            "a6c6244e8e98422bc738fec5f952473df6dc7ebf",
+            "4c1bcea7ef5db705bd931526d855298fbd86b9eb",
+            "4b6555beef240120bacb699c7d2f7c8e806b5747"
+        ]
+    ]
+}
