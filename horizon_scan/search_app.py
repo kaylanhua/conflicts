@@ -155,7 +155,7 @@ if search_button:
 
 st.markdown('---')
 st.markdown('## generate review of literature')
-st.markdown('disclaimer: i don\'t have that much money in my openai account, so please do not click this button an excessive number of times :)')
+st.markdown('disclaimer: i don\'t have infinite money in my openai account, so please do not click this button an excessive number of times :)')
 
 # Keyword search functionality
 rl_col1, rl_col2 = st.columns([3, 1]) 

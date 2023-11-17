@@ -19,3 +19,4 @@ nbimporter
 nbformat
 streamlit
 geopandas
+pycountry
