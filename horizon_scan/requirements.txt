@@ -20,3 +20,5 @@ nbformat
 streamlit
 geopandas
 pycountry
+googlesearch-python
+newspaper3k
