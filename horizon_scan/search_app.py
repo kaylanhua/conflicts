@@ -111,7 +111,7 @@ def generate_review(directions):
             continue
         paper_abstracts += "Title: " + entry["title"] + '\n' + "Abstract: " + entry["abstract"] + '\n' + "Author and year: (" + entry["author"] + ', ' + str(entry["year"]) + ')\n\n'
     
-    client = OpenAI()
+    client = OpenAI() 
 
     completion = client.chat.completions.create(
         # turbo (1106-preview) has 128k context window, about 300 pages of text
