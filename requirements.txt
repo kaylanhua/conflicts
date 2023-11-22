@@ -22,3 +22,4 @@ geopandas
 pycountry
 googlesearch-python
 newspaper3k
+imbalanced-learn
