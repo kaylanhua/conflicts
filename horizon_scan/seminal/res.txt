@@ -1,0 +1,35 @@
+### Literature Review: Modeling, Predicting, and Forecasting Armed Civil Conflicts
+
+#### Introduction
+
+Armed civil conflicts pose significant challenges to global stability, necessitating the development of models and methods to predict and forecast such events. Scholarly efforts have evolved over time, deploying a range of methodological approaches to understand the precursors and likelihood of conflict. This literature review synthesizes findings from key research papers, with particular attention to the methodologies used, their evolution, and their effectiveness in conflict analysis.
+
+#### Early Approaches and Innovations
+
+One of the foundational efforts in forecasting state failure, as defined by phenomena including civil wars and disruptive regime transitions, was the work of the State Failure Task Force, critically evaluated by Gary King (2001). King pointed out methodological errors that led to overstated forecast probabilities and biased causal inferences. By improving statistical procedures, King presented more accurate forecasts and also shed light on empirical regularities contributing to state failure.
+
+Adopting a different angle, Ibrahim A. Elbadawi (2000) challenged the notion that ethnic and religious diversity is the primary cause of Africa's civil wars. Instead, their quantitative study attributed the prevalence of war to poverty, failed political institutions, and economic dependency on natural resources. Elbadawi argued that democratic reforms and political institutions tailored to Africa's diverse societies could mitigate the risk of civil conflict.
+
+Nathaniel N. Beck (2000) critiqued the broader field of international conflict studies for inconsistent and unsatisfactory findings. Through a "neural network" model, Beck conjectured that the causes of conflict theorized to be significant are, in fact, large and stable only where the ex ante probability of conflict is high. This approach improved forecasts compared to previous models.
+
+#### Refining Measures and Predictive Power
+
+Turning to the specifics of regime type and its relationship with political instability, Jay Ulfelder (2007) utilized a new regime type measure to reanalyze transitions to and from democracy. Ulfelder's investigation revealed nuanced relationships between economic development, previous democratic experience, and the likelihood of democratic transition.
+
+Acknowledging a similar need for nuanced measurement, J. Goldstone (2010) developed a straightforward global model for forecasting political instability with an 80% accuracy using a nonlinear measure of regime type. Goldstone's model indicated that political institutions are pivotal predictors of instability onset, overshadowing economic, demographic, or geographical factors.
+
+P. Regan (2005) focused on the drivers of armed conflict, particularly highlighting the varying predictors of state behavior at different levels of violence and contesting popular notions such as the role of natural resources like diamonds in fueling unrest.
+
+#### Critical Assessments and Methodological Advances
+
+Efforts to refine the predictive attributes of models led M. Ward (2010) to caution against the overemphasis on statistical significance at the expense of predictive accuracy. By comparing influential models of civil war, Ward demonstrated the pitfalls of relying on p-values for policy guidance, highlighting the importance of out-of-sample predictions and heuristic evaluations.
+
+Recognizing the rarity of the event in question, Gary King (2001) studied the use of logistic regression in rare events data, proposing corrections to address the underestimation of rare events’ probability. King's methodological advancement drew attention to data collection strategies and the efficiency of sampling designs for rare events.
+
+P. Collier (2002) applied an econometric model to understand conflict incidence in sub-Saharan Africa, finding that the region's economic characteristics increased vulnerability, while certain social aspects reduced conflict likelihood. Collier's work suggested that Africa's conflict trends were a result of its unique economic and social landscape.
+
+#### Conclusion
+
+The synthesis of research illustrates a progression from broad statistical analyses to more refined models that aim to improve both predictive power and theoretical understanding of civil conflicts. Innovations in statistical methods, alongside critical assessments of conventional practices, have contributed to more sophisticated and nuanced approaches to forecasting political instability and armed conflict. As methodologies evolve, the focus remains on identifying key predictors – whether they be political institutions, economic indicators, or social structures – and on improving the tools necessary to guide policy decisions aimed at conflict prevention and resolution.
+
+This literature review demonstrates that the scholarship on modeling, predicting, and forecasting armed civil conflicts is characterized by ongoing refinement and a willingness to challenge established norms, paving the way for more accurate and reliable methods in an inherently complex and dynamic field of study.
