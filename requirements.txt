@@ -25,3 +25,4 @@ newspaper3k
 imbalanced-learn
 ellipsis
 h3pandas
+sepplotlib
