@@ -26,3 +26,4 @@ imbalanced-learn
 ellipsis
 h3pandas
 sepplotlib
+neuralforecast
