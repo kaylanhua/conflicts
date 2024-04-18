@@ -1,7 +1,0 @@
-data/
-*.csv
-*.log
-.DS_Store
-*.env
-*.bin
-horizon_scan/seminal/
