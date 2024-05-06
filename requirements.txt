@@ -27,3 +27,6 @@ ellipsis
 h3pandas
 sepplotlib
 neuralforecast
+langchain 
+langchain-openai 
+tavily-python
