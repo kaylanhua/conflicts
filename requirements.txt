@@ -29,4 +29,3 @@ sepplotlib
 neuralforecast
 langchain 
 langchain-openai 
-tavily-python
