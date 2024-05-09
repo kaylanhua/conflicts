@@ -4,9 +4,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import os
+import openai
+from openai import OpenAI
 
 ## MY IMPORTS
 import enums 
+
+# CONSTANTS
+openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 ## FUNCTIONS
 def fuzzy_match(input):
@@ -77,7 +85,7 @@ class UCDPCleaner():
             return
         data = self.resampled
         # Plotting the data with wartime periods shaded
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(12, 6))
         plt.plot(data.index, data['best'], label='Data')  
         
         ## TODO: combine this function w the one above
@@ -135,16 +143,47 @@ class UCDPCleaner():
     
     def resample(self, time_length, war_var=False):
         data = self.data
-        data_resampled = data.set_index('date_start').resample(time_length).agg({
-            'best': 'sum', # sum of fatalities
-            'conflict_new_id': lambda x: x.nunique(), # number of unique conflicts
-            'duration': 'mean', # average duration of conflict
-            'id': 'count', # number of events
-            'wartime': lambda x: 1 if x.mean() > 0.5 else 0, # whether the month is in wartime based on majority vote
-            'since_war_start': 'mean' # amount of time since the start of the war
-        }).rename(columns={'conflict_new_id': 'unique_conflicts', 'duration': 'avg_duration', 'id': 'events_count'})
+        if not war_var:
+            data_resampled = data.set_index('date_start').resample(time_length).agg({
+                'best': 'sum', # sum of fatalities
+                'conflict_new_id': lambda x: x.nunique(), # number of unique conflicts
+                'duration': 'mean', # average duration of conflict
+                'id': 'count', # number of events
+            })
+        else:
+            data_resampled = data.set_index('date_start').resample(time_length).agg({
+                'best': 'sum', # sum of fatalities
+                'conflict_new_id': lambda x: x.nunique(), # number of unique conflicts
+                'duration': 'mean', # average duration of conflict
+                'id': 'count', # number of events
+                'wartime': lambda x: 1 if x.mean() > 0.5 else 0, # whether the month is in wartime based on majority vote
+                'since_war_start': 'mean' # amount of time since the start of the war
+            })
         
-        self.resampled = data_resampled
+        self.resampled = data_resampled.rename(columns={'conflict_new_id': 'unique_conflicts', 'duration': 'avg_duration', 'id': 'events_count'})
         
         return data_resampled
 
+
+def llm_country_info(country, more_info=None):
+    if more_info == '': more_info = None
+    
+    client = OpenAI()
+    
+    system_prompt = f"""You are foreign policy and political science expert advising a civil
+        conflicts research team. You are asked to provide a brief summary of the history of 
+        civil conflicts. When you are asked for a summary, you should provide a brief overview (LIMITED
+        TO TWO PARAGRAPHS ONLY) of the timeline of important civil conflicts in the nation, as well 
+        as the main belligerents. Do not focus too much on historical details and events."""
+
+    completion = client.chat.completions.create(
+        # turbo (1106-preview) has 128k context window, about 300 pages of text
+        model="gpt-4-1106-preview", # test with: gpt-3.5-turbo, run final: gpt-4-1106-preview
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Tell me about the history of civil conflicts in {country}. Also, {more_info or ''} Limit your response to two short paragraphs not exceeding 200 words in total."},
+        ]
+    )
+
+    gpt_summary = completion.choices[0].message.content
+    return gpt_summary

@@ -29,3 +29,4 @@ sepplotlib
 neuralforecast
 langchain 
 langchain-openai 
+mpld3
