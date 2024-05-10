@@ -121,7 +121,7 @@ with col3:
     if not search_button:
         st.markdown('## About this project')
         st.write('This app is a work in progress. It is designed to help users explore conflict data and visualize trends over time. The data is sourced from the UCDP and is updated regularly.')
-        st.write('For more information, please contact the developer at kaylahuang@college.harvard.edu')
+        st.write('For more information, please contact the developer.')
 
     if search_button and country is not None:
         st.markdown(f'## Conflict background')
