@@ -1,4 +1,7 @@
-data/
+data/acled
+data/shapefiles
+data/views
+data/ucdp/GEDEvent_v23_1.csv
 *.csv
 *.log
 .DS_Store
