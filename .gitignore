@@ -2,7 +2,8 @@ data/acled
 data/shapefiles
 data/views
 data/ucdp/GEDEvent_v23_1.csv
-*.csv
+archive/news_sentiment/data/
+# *.csv
 *.log
 .DS_Store
 *.env
