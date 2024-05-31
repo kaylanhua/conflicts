@@ -30,3 +30,4 @@ neuralforecast
 langchain 
 langchain-openai 
 mpld3
+requests
