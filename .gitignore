@@ -11,3 +11,4 @@ archive/news_sentiment/data/
 *.bin
 horizon_scan/seminal/
 *.json
+*__pycache__*
