@@ -38,3 +38,4 @@ duckduckgo_search
 ollama
 playwright
 trafilatura
+chromadb
