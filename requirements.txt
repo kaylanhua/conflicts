@@ -31,3 +31,10 @@ langchain
 langchain-openai 
 mpld3
 requests
+llama-index
+openai
+tiktoken
+duckduckgo_search
+ollama
+playwright
+trafilatura
