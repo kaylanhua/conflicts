@@ -39,3 +39,4 @@ ollama
 playwright
 trafilatura
 chromadb
+langchain-community
