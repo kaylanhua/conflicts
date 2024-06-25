@@ -40,3 +40,6 @@ playwright
 trafilatura
 chromadb
 langchain-community
+langchain-openai
+plotly
+streamlit-vis-timeline
