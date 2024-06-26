@@ -43,18 +43,26 @@ print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mN
 # '''
 # GDELT PROCESSING SECTION
 # '''
-def get_gdelt_data(query, start_date, end_date):
+def get_gdelt_data(queries, start_date, end_date, max_records=5):
     base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
-    print(query)
-    lang_query = f"{query} sourcelang:english"
+    print(queries)
+    
+    if len(queries) > 1:
+        combined_query = " OR ".join(queries)
+        lang_query = f"({combined_query} sourcelang:english)"
+    else:
+        lang_query = f"{queries[0]} sourcelang:english"
     params = {
         "query": lang_query,
         "mode": "artlist",
         "format": "json",
         "startdatetime": start_date.strftime("%Y%m%d%H%M%S"),
         "enddatetime": end_date.strftime("%Y%m%d%H%M%S"),
-        "maxrecords": 5,
+        "maxrecords": max_records,
     }
+    
+    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}"
+    print("Request URL:", request_url)
     response = requests.get(base_url, params=params).json()
     urls = [article["url"] for article in response.get("articles", [])]
     return urls, response
@@ -71,10 +79,7 @@ def create_dataset(list_of_websites: list) :
             response = requests.get(url, timeout=5)
             response.raise_for_status()  # Check for successful response
             # Parse HTML content
-            print("are you stuck here")
-            
             soup = BeautifulSoup(response.content, "html.parser")
-            print("or here")
             
             metadata = extract_metadata(response.content)
             title = soup.title.string
