@@ -11,5 +11,6 @@ archive/news_sentiment/data/
 *.bin
 horizon_scan/seminal/
 *.json
+!rf_edited.json
 /__pycache__/
 *.pyc
