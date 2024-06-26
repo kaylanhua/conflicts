@@ -41,7 +41,7 @@ styling('#F9F5F1')
 local = False
 filename = 'rf_jsons/rf_edited.json' ## on local
 if not local:
-    filename = '/mount/src/conflicts/horizon_scan/' + filename ## on server
+    filename = '/mount/src/conflicts/archive/horizon_scan/' + filename ## on server
 with open(filename, 'r') as file:
     papers = json.load(file)
 
