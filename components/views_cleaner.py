@@ -6,15 +6,22 @@ from datetime import datetime
 
 ## CLASS DEF
 class VIEWSCleaner():
-    def __init__(self, filename, gw_id):
-        self.features = self.load_data(filename, gw_id)
+    def __init__(self, filename, gw_id, trim_full=True):
+        self.features = self.load_data(filename, gw_id, trim_full)
         self.features_war_dates = None
         self.gw_id = gw_id
 
-    def load_data(self, filename, gw_id):
+    def load_data(self, filename, gw_id, trim_full=True):
         all_features = pd.read_parquet(filename, engine='pyarrow')
         country_af = all_features[all_features["gleditsch_ward"] == gw_id]
-        columns_to_remove = [col for col in all_features.columns if "_sb" in col or "ged" in col or "acled" in col][1:]
+        target_vars = ["ged_os", "ged_ns", "acled_sb", "acled_sb_count", "acled_os"]
+        full_columns = [col for col in all_features.columns if "_sb" in col or "ged" in col or "acled" in col][1:]
+        if trim_full:
+            columns_to_remove = full_columns
+        else:
+            columns_to_remove = target_vars
+            
+        print(f"Removing columns: {columns_to_remove}")
         return country_af.drop(columns=columns_to_remove)
     
     def plot(self):

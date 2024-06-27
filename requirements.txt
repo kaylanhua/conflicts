@@ -43,3 +43,4 @@ langchain-community
 langchain-openai
 plotly
 streamlit-vis-timeline
+h2o
