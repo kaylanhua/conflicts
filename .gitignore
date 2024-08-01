@@ -1,7 +1,5 @@
 data/acled
 data/shapefiles
-data/views21
-data/views23
 data/ucdp/GEDEvent_v23_1.csv
 archive/news_sentiment/data/
 # *.csv
