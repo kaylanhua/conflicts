@@ -2,21 +2,8 @@ import torch
 import torch.nn as nn 
 import numpy as np
 import matplotlib.pyplot as plt
-from microprediction import MicroReader
-# from microconventions import api_url
-
-# # TOY DATA, it does not work 
-# reader = MicroReader()
-# stream_names = reader.get_stream_names()
-# stream = stream_names[50]
-# history = reader.get_lagged_values(name=stream)
-
-# plt.plot(history)
-# plt.title(f'Historical Values for Stream Named {stream}')
-# plt.xlabel('Lag')
-# plt.ylabel('Value')
-# plt.savefig('plot.png')
-
+import pandas as pd
+import numpy as np
 
 # DATA SECTION ----------------------------------------------------------------
 def create_sequences(data, seq_length):
@@ -32,7 +19,13 @@ def create_sequences(data, seq_length):
         
     return np.array(xs), np.array(ys)
 
-history = None
+all_history = pd.read_csv('../../data/views/sri_lanka.csv')
+history = all_history['ged_sb'].tolist()
+
+# plt.plot(history[:30])
+# plt.xlabel("Time")
+# plt.ylabel("Value")
+# plt.title(f"Historical Data for sri lanka")
 
 seq_length = 10
 X, y = create_sequences(history, seq_length)
@@ -89,3 +82,26 @@ model = LSTM(input_size, hidden_size, num_layers, output_size)
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
 num_epochs = 100
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+for epoch in range(num_epochs):
+    outputs = model(X_train.unsqueeze(-1)).squeeze()
+    optimizer.zero_grad()
+    loss = criterion(outputs, y_train)
+    loss.backward()
+    optimizer.step()
+    
+    if (epoch + 1) % 10 == 0:
+        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item():.4f}")
+        
+print("!! Training complete !!")
+
+
+# TESTING THE MODEL ----------------------------------------------------------------
+with torch.no_grad():
+    test_outputs = model(X_test.unsqueeze(-1)).squeeze()
+    test_loss = criterion(test_outputs, y_test)
+    print(f"Test Loss: {test_loss.item():.4f}")
+    print("!! Testing complete !!")
