@@ -20,7 +20,20 @@ def create_sequences(data, seq_length):
     return np.array(xs), np.array(ys)
 
 all_history = pd.read_csv('../../data/views/sri_lanka.csv')
+all_history = all_history.head(140)
 history = all_history['ged_sb'].tolist()
+
+
+# # Perform Log Transformation on history
+# history = [np.log1p(x) for x in history]  # Using log1p to handle zero values
+
+# Perform Min-Max Normalization on history
+min_val = min(history)
+max_val = max(history)
+history_normalized = [(x - min_val) / (max_val - min_val) for x in history]
+history = history_normalized
+print(f"Normalized data - Min: {min(history):.4f}, Max: {max(history):.4f}")
+
 
 # plt.plot(history[:30])
 # plt.xlabel("Time")
@@ -72,11 +85,10 @@ class LSTM(nn.Module):
 
 # INITIALIZING THE MODEL -----------------------------------------------------------
 input_size = 1 # univariate
-hidden_size = 50
-num_layers = 1 
+hidden_size = 70
+num_layers = 4 
 output_size = 1
 model = LSTM(input_size, hidden_size, num_layers, output_size)
-
 
 
 # TRAINING THE MODEL ----------------------------------------------------------------
@@ -87,9 +99,9 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 for epoch in range(num_epochs):
-    outputs = model(X_train.unsqueeze(-1)).squeeze()
+    train_outputs = model(X_train.unsqueeze(-1)).squeeze()
     optimizer.zero_grad()
-    loss = criterion(outputs, y_train)
+    loss = criterion(train_outputs, y_train)
     loss.backward()
     optimizer.step()
     
@@ -99,9 +111,27 @@ for epoch in range(num_epochs):
 print("!! Training complete !!")
 
 
+
 # TESTING THE MODEL ----------------------------------------------------------------
 with torch.no_grad():
     test_outputs = model(X_test.unsqueeze(-1)).squeeze()
     test_loss = criterion(test_outputs, y_test)
     print(f"Test Loss: {test_loss.item():.4f}")
     print("!! Testing complete !!")
+    
+
+all_outputs = np.concatenate((train_outputs.detach().numpy(), test_outputs.detach().numpy()))
+
+# Calculate the index where the test set starts
+test_start_index = len(history) - len(y_test) - seq_length
+
+# Plot the true values and the predictions
+plt.plot(history, label="True Values")
+plt.plot(range(seq_length, seq_length + len(all_outputs)), all_outputs, label="Predictions")
+plt.axvline(x=test_start_index, color='gray', linestyle='--', label="Test set start")
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.legend()
+plt.title("LSTM Predictions vs True Values")
+plt.savefig('lstm_predictions_vs_true_values.jpg')
+plt.close()
