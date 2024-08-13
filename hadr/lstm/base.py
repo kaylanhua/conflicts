@@ -38,9 +38,10 @@ def create_multivariate_sequences(input_sequences, output_sequence, n_steps_in, 
 
 country = 'drc'
 # types: 'attention', 'base', 'multi'
-lstm_type = 'multi'
+lstm_type = 'base'
 # all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
-all_history = pd.read_csv('drc_features.csv').dropna()
+all_history = pd.read_csv('./drc/drc_no_rolling.csv').dropna()
+# all_history = pd.read_csv('drc_features.csv').dropna()
 # all_history = all_history.head(140)
 
 # NORMALIZATION SECTION 
@@ -171,10 +172,12 @@ class LSTMMultivariate(nn.Module):
         
     
 # INITIALIZING THE MODEL -----------------------------------------------------------
-input_size = 4 # univariate
+input_size = 1 # univariate
+# input_size = 4 # multivariate
 hidden_size = 50
 num_layers = 3
-output_size = 6
+output_size = 1
+# output_size = 6
 
 if lstm_type == 'base':
     # LSTM model: hidden size 70, num layers 4, epochs 180, LR 0.01, seq_length 10
