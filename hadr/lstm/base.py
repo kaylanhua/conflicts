@@ -20,7 +20,7 @@ def create_sequences(data, seq_length):
     return np.array(xs), np.array(ys)
 
 country = 'drc'
-# types: 'attention', 'base'
+# types: 'attention', 'base', 'multi'
 lstm_type = 'base'
 # all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
 all_history = pd.read_csv('drc_no_rolling.csv').dropna()
@@ -67,6 +67,12 @@ class LSTM(nn.Module):
 
     def forward(self, x):
         B = x.size(0)
+        
+        # FOR BIGGER DATA: if we want to persist the hidden states (this is for when each epoch calls forward multiple times)
+        # if self.hidden is None:
+        #     self.hidden = (torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device),
+        #                    torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device))
+        
         # hidden states
         h0 = torch.zeros(self.num_layers, B, self.hidden_size).to(x.device)
         # cell states
@@ -98,7 +104,34 @@ class LSTMAttention(nn.Module):
         context_vector = torch.bmm(attention_weights.transpose(1, 2), lstm_out)
         out = self.fc(context_vector.squeeze(1))
         return out 
-
+    
+# LSTM Multivariate: https://charlieoneill.medium.com/predicting-the-price-of-bitcoin-with-multivariate-pytorch-lstms-695bc294130
+class LSTMMultivariate(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size=1, num_layers=1):
+        super().__init__()
+        self.output_size = output_size
+        self.num_layers = num_layers
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
+        self.fc1 = nn.Linear(hidden_size, 128)
+        self.fc2 = nn.Linear(128, output_size)
+        self.relu = nn.ReLU()
+        
+    def forward(self, x):
+        B = x.size(0)
+        h0 = torch.zeros(self.num_layers, B, self.hidden_size).to(x.device)
+        c0 = torch.zeros(self.num_layers, B, self.hidden_size).to(x.device)
+        
+        out, (hn, cn) = self.lstm(x, (h0, c0))
+        hn = hn.view(-1, self.hidden_size) # reshaping the data for Dense layer next
+        out = self.relu(hn)
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
+        
+    
 # INITIALIZING THE MODEL -----------------------------------------------------------
 input_size = 1 # univariate
 hidden_size = 50
