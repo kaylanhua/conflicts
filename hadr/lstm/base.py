@@ -36,27 +36,30 @@ def create_multivariate_sequences(input_sequences, output_sequence, n_steps_in, 
     
     return np.array(X), np.array(y)
 
+# TOGGLES
 country = 'drc'
-# types: 'attention', 'base', 'multi'
-lstm_type = 'base'
-# all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
-all_history = pd.read_csv('./drc/drc_no_rolling.csv').dropna()
-# all_history = pd.read_csv('drc_features.csv').dropna()
-# all_history = all_history.head(140)
+lstm_type = 'multi' # 'attention', 'base', 'multi'
+
+if lstm_type == 'multi':
+    all_history = pd.read_csv('drc_features.csv').dropna()
+else:
+    all_history = pd.read_csv('./drc/drc_no_rolling.csv').dropna()
+    # all_history = all_history.head(140)
 
 # NORMALIZATION SECTION 
 if lstm_type == 'multi':
+    seq_length = 50
     X, y = all_history.drop(columns=['ged_sb']), all_history.ged_sb.values
     mm = MinMaxScaler() # can also use the one below that univariate models use
     ss = StandardScaler()
     X_trans = ss.fit_transform(X)
     y_trans = mm.fit_transform(y.reshape(-1, 1))
     
-    X_ss, y_mm = create_multivariate_sequences(X_trans, y_trans, 12, 6) # tweak these hyperparameters
+    X_ss, y_mm = create_multivariate_sequences(X_trans, y_trans, seq_length, seq_length // 2) # tweak these hyperparameters
     print(f"Multivariate data shapes for X, y: {X_ss.shape}, y: {y_mm.shape}")
     
-    total_samples = len(X)
-    train_test_cutoff = round(0.90 * total_samples)
+    total_samples = len(X_ss)
+    train_test_cutoff = round(0.80 * total_samples)
     X_train, X_test = X_ss[:train_test_cutoff], X_ss[train_test_cutoff:]
     y_train, y_test = y_mm[:train_test_cutoff], y_mm[train_test_cutoff:]
     
@@ -173,11 +176,13 @@ class LSTMMultivariate(nn.Module):
     
 # INITIALIZING THE MODEL -----------------------------------------------------------
 input_size = 1 # univariate
-# input_size = 4 # multivariate
 hidden_size = 50
 num_layers = 3
 output_size = 1
-# output_size = 6
+
+if lstm_type == 'multi':
+    output_size = seq_length // 2
+    input_size = 4 # multivariate
 
 if lstm_type == 'base':
     # LSTM model: hidden size 70, num layers 4, epochs 180, LR 0.01, seq_length 10
@@ -225,8 +230,8 @@ def multivariate_training_loop(n_epochs, lstm, optimizer, loss_fn, X_train, y_tr
         
         if epoch % 10 == 0:
             print("Epoch: %d, train loss: %1.5f, test loss: %1.5f" % (epoch, 
-                                                                      loss.item(), 
-                                                                      test_loss.item())) 
+                    loss.item(), 
+                    test_loss.item())) 
 
 
 # TESTING THE MODEL ----------------------------------------------------------------
@@ -264,10 +269,8 @@ if lstm_type == 'multi':
 
     plt.plot(true, label='Actual Data') # actual plot
     plt.plot(preds, label='Predicted Data') # predicted plot
-    plt.title('Time-Series Prediction')
+    plt.title(f'Multivariate LSTM Prediction for {country}')
     plt.legend()
-    plt.savefig("whole_plot.png", dpi=300)
-    plt.show()
     
 else:
     with torch.no_grad():
@@ -276,7 +279,6 @@ else:
         print(f"Test Loss: {test_loss.item():.4f}")
         print("!! Testing complete !!")
         
-
     all_outputs = np.concatenate((train_outputs.detach().numpy(), test_outputs.detach().numpy()))
 
     # Calculate the index where the test set starts
@@ -289,6 +291,7 @@ else:
     plt.xlabel("Time")
     plt.ylabel("Value")
     plt.legend()
-    plt.title("LSTM Predictions vs True Values")
-    plt.savefig(f'{country}_{lstm_type}__EP{num_epochs}__NL{num_layers}__HS{hidden_size}__SL{seq_length}.jpg')
-    plt.close()
+    plt.title(f'LSTM Predictions vs True Values for {country}')
+    
+plt.savefig(f'{country}_{lstm_type}__EP{num_epochs}__NL{num_layers}__HS{hidden_size}__SL{seq_length}.jpg')
+plt.close()
