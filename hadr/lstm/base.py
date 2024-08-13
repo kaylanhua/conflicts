@@ -19,13 +19,16 @@ def create_sequences(data, seq_length):
         
     return np.array(xs), np.array(ys)
 
+country = 'drc'
+# types: 'attention', 'base'
+lstm_type = 'attention'
 # all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
 all_history = pd.read_csv('drc_no_rolling.csv').dropna()
 # all_history = all_history.head(140)
 history = all_history['ged_sb'].tolist()
 # history = all_history['rolling_avg'].tolist()
 
-
+# NORMALIZATION SECTION 
 # # Perform Log Transformation on history
 # history = [np.log1p(x) for x in history]  # Using log1p to handle zero values
 
@@ -36,12 +39,6 @@ history_normalized = [(x - min_val) / (max_val - min_val) for x in history]
 history = history_normalized
 print(f"Normalized data - Min: {min(history):.4f}, Max: {max(history):.4f}")
 
-
-# plt.plot(history[:30])
-# plt.xlabel("Time")
-# plt.ylabel("Value")
-# plt.title(f"Historical Data for sri lanka")
-
 seq_length = 10
 X, y = create_sequences(history, seq_length)
 
@@ -50,7 +47,6 @@ train_size = int(len(y) * 0.8)
 X_train, X_test = X[:train_size], X[train_size:]
 y_train, y_test = y[:train_size], y[train_size:]
 
-# convert to tensors
 X_train = torch.from_numpy(X_train).float()
 y_train = torch.from_numpy(y_train).float()
 X_test = torch.from_numpy(X_test).float()
@@ -58,6 +54,8 @@ y_test = torch.from_numpy(y_test).float()
 
 
 # MODEL SECTION ----------------------------------------------------------------
+
+# Base LSTM: https://medium.com/@mike.roweprediger/using-pytorch-to-train-an-lstm-forecasting-model-e5a04b6e0e67
 class LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(LSTM, self).__init__()
@@ -84,22 +82,44 @@ class LSTM(nn.Module):
         # output is of size B, O (output size)
         return out
     
+# Attention LSTM: https://medium.com/@aidant0001/revolutionizing-time-series-prediction-with-lstm-with-the-attention-mechanism-2bd126e9fdf1
+class LSTMAttention(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size=1, num_layers=1):
+        super(LSTMAttention, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.attention = nn.Linear(hidden_size, 1)
+        self.fc = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, x):
+        lstm_out, _ = self.lstm(x)
+        attention_weights = torch.softmax(self.attention(lstm_out), dim=1)
+        context_vector = torch.bmm(attention_weights.transpose(1, 2), lstm_out)
+        out = self.fc(context_vector.squeeze(1))
+        return out 
 
 # INITIALIZING THE MODEL -----------------------------------------------------------
 input_size = 1 # univariate
-hidden_size = 70
-num_layers = 4 
+hidden_size = 50
+num_layers = 1
 output_size = 1
-model = LSTM(input_size, hidden_size, num_layers, output_size)
 
+if lstm_type == 'base':
+    # LSTM model: hidden size 70, num layers 4, epochs 180, LR 0.01, seq_length 10
+    model = LSTM(input_size, hidden_size, num_layers, output_size)
+elif lstm_type == 'attention':
+    # LSTM Attention model: hidden size , num layers 
+    model = LSTMAttention(input_size, hidden_size, output_size, num_layers)
 
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
-num_epochs = 180
+num_epochs = 100
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+model.train()
 for epoch in range(num_epochs):
     train_outputs = model(X_train.unsqueeze(-1)).squeeze()
     optimizer.zero_grad()
@@ -111,7 +131,6 @@ for epoch in range(num_epochs):
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item():.4f}")
         
 print("!! Training complete !!")
-
 
 
 # TESTING THE MODEL ----------------------------------------------------------------
@@ -135,5 +154,5 @@ plt.xlabel("Time")
 plt.ylabel("Value")
 plt.legend()
 plt.title("LSTM Predictions vs True Values")
-plt.savefig('lstm_predictions_vs_true_values.jpg')
+plt.savefig(f'{country}_{lstm_type}__EP{num_epochs}__NL{num_layers}__HS{hidden_size}__SL{seq_length}.jpg')
 plt.close()
