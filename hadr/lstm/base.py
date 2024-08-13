@@ -21,7 +21,7 @@ def create_sequences(data, seq_length):
 
 country = 'drc'
 # types: 'attention', 'base'
-lstm_type = 'attention'
+lstm_type = 'base'
 # all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
 all_history = pd.read_csv('drc_no_rolling.csv').dropna()
 # all_history = all_history.head(140)
@@ -39,7 +39,7 @@ history_normalized = [(x - min_val) / (max_val - min_val) for x in history]
 history = history_normalized
 print(f"Normalized data - Min: {min(history):.4f}, Max: {max(history):.4f}")
 
-seq_length = 10
+seq_length = 5
 X, y = create_sequences(history, seq_length)
 
 # split train and test
@@ -102,7 +102,7 @@ class LSTMAttention(nn.Module):
 # INITIALIZING THE MODEL -----------------------------------------------------------
 input_size = 1 # univariate
 hidden_size = 50
-num_layers = 1
+num_layers = 3
 output_size = 1
 
 if lstm_type == 'base':
@@ -114,7 +114,7 @@ elif lstm_type == 'attention':
 
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
-num_epochs = 100
+num_epochs = 200
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
