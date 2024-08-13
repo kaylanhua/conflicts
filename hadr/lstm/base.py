@@ -238,7 +238,33 @@ if lstm_type == 'multi':
               X_test=X_test,
               y_test=y_test)
     
+    df_X_ss = ss.transform(all_history.drop(columns=['ged_sb'])) 
+    df_y_mm = mm.transform(all_history.ged_sb.values.reshape(-1, 1)) 
+    df_X_ss, df_y_mm = create_multivariate_sequences(df_X_ss, df_y_mm, 12, 6)
+    df_X_ss = torch.from_numpy(df_X_ss).float()
+    df_y_mm = torch.from_numpy(df_y_mm).float()
+    train_predict = model(df_X_ss) # forward pass
+    data_predict = train_predict.data.numpy() # numpy conversion
+    dataY_plot = df_y_mm.data.numpy()
     
+    data_predict = mm.inverse_transform(data_predict) # reverse transformation
+    dataY_plot = mm.inverse_transform(dataY_plot)
+    
+    # PLOTTING
+    true, preds = [], []
+    for i in range(len(dataY_plot)):
+        true.append(dataY_plot[i][0])
+    for i in range(len(data_predict)):
+        preds.append(data_predict[i][0])
+    plt.figure(figsize=(10,6)) #plotting
+    plt.axvline(x=train_test_cutoff, c='r', linestyle='--') # size of the training set
+
+    plt.plot(true, label='Actual Data') # actual plot
+    plt.plot(preds, label='Predicted Data') # predicted plot
+    plt.title('Time-Series Prediction')
+    plt.legend()
+    plt.savefig("whole_plot.png", dpi=300)
+    plt.show()
     
 else:
     with torch.no_grad():
