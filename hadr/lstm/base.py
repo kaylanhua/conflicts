@@ -19,10 +19,12 @@ def create_sequences(data, seq_length):
         
     return np.array(xs), np.array(ys)
 
-# all_history = pd.read_csv('../../data/views/sri_lanka.csv')
-all_history = pd.read_csv('SL_rolling3.csv').dropna()
+all_history = pd.read_csv('../../data/views/sri_lanka.csv')
+# all_history = pd.read_csv('SL_rolling2_long.csv').dropna()
 all_history = all_history.head(140)
-history = all_history['rolling_avg'].tolist()
+history = all_history['ged_sb'].tolist()
+# history = all_history['rolling_avg'].tolist()
+
 
 # # Perform Log Transformation on history
 # history = [np.log1p(x) for x in history]  # Using log1p to handle zero values
@@ -93,7 +95,7 @@ model = LSTM(input_size, hidden_size, num_layers, output_size)
 
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
-num_epochs = 100
+num_epochs = 180
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
