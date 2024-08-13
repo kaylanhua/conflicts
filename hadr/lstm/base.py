@@ -19,9 +19,9 @@ def create_sequences(data, seq_length):
         
     return np.array(xs), np.array(ys)
 
-all_history = pd.read_csv('../../data/views/sri_lanka.csv')
-# all_history = pd.read_csv('SL_rolling2_long.csv').dropna()
-all_history = all_history.head(140)
+# all_history = pd.read_csv('../../data/views/drc_no_rolling.csv')
+all_history = pd.read_csv('drc_no_rolling.csv').dropna()
+# all_history = all_history.head(140)
 history = all_history['ged_sb'].tolist()
 # history = all_history['rolling_avg'].tolist()
 
