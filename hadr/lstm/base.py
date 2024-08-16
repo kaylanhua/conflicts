@@ -8,19 +8,19 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
 # DATA SECTION ----------------------------------------------------------------
-def create_sequences(data, seq_length):
+def create_sequences(data, seq_length, n_ahead):
     # discards data after the last mult of seq_length
     xs = []
     ys = []
     
-    for i in range(len(data) - seq_length - 1):
+    for i in range(len(data) - seq_length - n_ahead):
         x = data[i:i+seq_length]
-        y = data[i+seq_length]
+        y = data[i+seq_length+n_ahead-1]
         xs.append(x)
         ys.append(y)
         
     return np.array(xs), np.array(ys)
-
+        
 def create_multivariate_sequences(input_sequences, output_sequence, n_steps_in, n_steps_out):
     X, y = list(), list() # instantiate X and y
     for i in range(len(input_sequences)):
@@ -38,7 +38,7 @@ def create_multivariate_sequences(input_sequences, output_sequence, n_steps_in, 
 
 # TOGGLES
 country = 'drc'
-lstm_type = 'multi' # 'attention', 'base', 'multi'
+lstm_type = 'base' # 'attention', 'base', 'multi'
 
 if lstm_type == 'multi':
     all_history = pd.read_csv('drc_features.csv').dropna()
@@ -48,14 +48,15 @@ else:
 
 # NORMALIZATION SECTION 
 if lstm_type == 'multi':
-    seq_length = 50
+    seq_length = 10
+    out_length = 1
     X, y = all_history.drop(columns=['ged_sb']), all_history.ged_sb.values
     mm = MinMaxScaler() # can also use the one below that univariate models use
     ss = StandardScaler()
     X_trans = ss.fit_transform(X)
     y_trans = mm.fit_transform(y.reshape(-1, 1))
     
-    X_ss, y_mm = create_multivariate_sequences(X_trans, y_trans, seq_length, seq_length // 2) # tweak these hyperparameters
+    X_ss, y_mm = create_multivariate_sequences(X_trans, y_trans, seq_length, out_length) # tweak these hyperparameters
     print(f"Multivariate data shapes for X, y: {X_ss.shape}, y: {y_mm.shape}")
     
     total_samples = len(X_ss)
@@ -79,18 +80,20 @@ else:
     history = history_normalized
     print(f"Normalized data - Min: {min(history):.4f}, Max: {max(history):.4f}")
 
+    n_ahead = 3  # Predict 3 months ahead, change this value as needed, 1 is the default
     seq_length = 5
-    X, y = create_sequences(history, seq_length)
+
+    X, y = create_sequences(history, seq_length, n_ahead)
 
     # split train and test
     train_size = int(len(y) * 0.8)
     X_train, X_test = X[:train_size], X[train_size:]
     y_train, y_test = y[:train_size], y[train_size:]
 
-X_train = torch.from_numpy(X_train).float()
-y_train = torch.from_numpy(y_train).float()
-X_test = torch.from_numpy(X_test).float()
-y_test = torch.from_numpy(y_test).float()
+    X_train = torch.from_numpy(X_train).float()
+    y_train = torch.from_numpy(y_train).float()
+    X_test = torch.from_numpy(X_test).float()
+    y_test = torch.from_numpy(y_test).float()
 
 
 # MODEL SECTION ----------------------------------------------------------------
@@ -147,7 +150,7 @@ class LSTMAttention(nn.Module):
     
 # LSTM Multivariate: https://charlieoneill.medium.com/predicting-the-price-of-bitcoin-with-multivariate-pytorch-lstms-695bc294130
 class LSTMMultivariate(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size=1, num_layers=1):
+    def __init__(self, input_size, hidden_size, output_size, num_layers):
         super().__init__()
         self.output_size = output_size
         self.num_layers = num_layers
@@ -156,9 +159,11 @@ class LSTMMultivariate(nn.Module):
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
         self.fc1 = nn.Linear(hidden_size, 128)
         self.fc2 = nn.Linear(128, output_size)
+        self.fc = nn.Linear(hidden_size, output_size)
         self.relu = nn.ReLU()
         
     def forward(self, x):
+        # TBH almost the same thing as the base LSTM, just with different data inputs
         B = x.size(0)
         h0 = torch.zeros(self.num_layers, B, self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, B, self.hidden_size).to(x.device)
@@ -167,10 +172,12 @@ class LSTMMultivariate(nn.Module):
         out = output[:, -1, :]
         # hn = hn.view(-1, self.hidden_size) # reshaping the data for Dense layer next
         
-        out = self.relu(out)
-        out = self.fc1(out)
-        out = self.relu(out)
-        out = self.fc2(out)
+        # out = self.relu(out)
+        out = self.fc(out)
+        
+        # out = self.fc1(out)
+        # out = self.relu(out)
+        # out = self.fc2(out)
         return out
         
     
@@ -181,7 +188,7 @@ num_layers = 3
 output_size = 1
 
 if lstm_type == 'multi':
-    output_size = seq_length // 2
+    output_size = out_length
     input_size = 4 # multivariate
 
 if lstm_type == 'base':
@@ -194,7 +201,7 @@ elif lstm_type == 'multi':
     
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
-num_epochs = 200
+num_epochs = 700
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -282,16 +289,19 @@ else:
     all_outputs = np.concatenate((train_outputs.detach().numpy(), test_outputs.detach().numpy()))
 
     # Calculate the index where the test set starts
-    test_start_index = len(history) - len(y_test) - seq_length
+    test_start_index = len(history) - len(y_test) - seq_length - n_ahead + 1
+    print(f"Test start index: {test_start_index}")
 
     # Plot the true values and the predictions
+    plt.figure(figsize=(12, 6))
     plt.plot(history, label="True Values")
-    plt.plot(range(seq_length, seq_length + len(all_outputs)), all_outputs, label="Predictions")
+    plt.plot(range(seq_length + n_ahead - 1, seq_length + n_ahead - 1 + len(all_outputs)), 
+             all_outputs, label=f"Predictions ({n_ahead} months ahead)")
     plt.axvline(x=test_start_index, color='gray', linestyle='--', label="Test set start")
     plt.xlabel("Time")
     plt.ylabel("Value")
     plt.legend()
-    plt.title(f'LSTM Predictions vs True Values for {country}')
+    plt.title(f'LSTM {lstm_type.upper()} Predictions vs True Values for {country.upper()} ({n_ahead} months ahead)')
     
-plt.savefig(f'{country}_{lstm_type}__EP{num_epochs}__NL{num_layers}__HS{hidden_size}__SL{seq_length}.jpg')
-plt.close()
+    plt.savefig(f'{country}_{lstm_type}__EP{num_epochs}__NL{num_layers}__HS{hidden_size}__SL{seq_length}__NA{n_ahead}.jpg')
+    plt.close()

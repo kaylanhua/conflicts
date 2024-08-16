@@ -44,3 +44,4 @@ langchain-openai
 plotly
 streamlit-vis-timeline
 h2o
+transformers
