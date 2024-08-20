@@ -26,10 +26,24 @@ def create_dataset(year):
     dataset = merged_df[merged_df['Date'] <= cutoff_date]
     return dataset
 
+# Function to create target dataset for a specific year
+def create_target_dataset(year):
+    start_date = pd.to_datetime(f'{year}-01-01')
+    end_date = pd.to_datetime(f'{year}-12-31')
+    target_dataset = merged_df[(merged_df['Date'] >= start_date) & (merged_df['Date'] <= end_date)]
+    return target_dataset
+
 # Create datasets for each year
 years = [2018, 2019, 2020, 2021, 2024]
 for year in years:
-    dataset = create_dataset(year)
-    output_path = f'../../data/views/input_data_{year}.csv'
-    dataset.to_csv(output_path, index=False)
-    print(f"Dataset for {year} created and saved to {output_path}")
+    # Create and save input dataset
+    # dataset = create_dataset(year)
+    # input_path = f'../../data/views/input_data_{year}.csv'
+    # dataset.to_csv(input_path, index=False)
+    # print(f"Input dataset for {year} created and saved to {input_path}")
+
+    # Create and save target dataset
+    target_dataset = create_target_dataset(year)
+    target_path = f'../../data/views/target_{year}.csv'
+    target_dataset.to_csv(target_path, index=False)
+    print(f"Target dataset for {year} created and saved to {target_path}")
