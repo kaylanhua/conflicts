@@ -27,11 +27,17 @@ def calculate_crps(actuals_file, forecasts_file):
 # Example usage:
 if __name__ == "__main__":
     actuals_file = "DRC_cm_actuals_2019.csv"
-    forecasts_file = "DRC_Conflictology_2019.csv"
+    conflictology_file = "DRC_Conflictology_2019.csv"
+    lstm_file = "DRC_lstm_forecasts_2019.csv"
     
-    results = calculate_crps(actuals_file, forecasts_file)
+    conflictology_results = calculate_crps(actuals_file, conflictology_file)
+    lstm_results = calculate_crps(actuals_file, lstm_file)
     
-    for result in results:
+    print("Comparison of Conflictology and LSTM Results:")
+    for i in range(len(conflictology_results)):
         print("--------------------------------")
-        print(f"month_id: {result['month_id']}, forecast: {result['forecast']}, observation: {result['observation']}")
-        print(f"CRPS Score: {result['crps_score']:.4f}")
+        print(f"month_id: {conflictology_results[i]['month_id']}, observation: {conflictology_results[i]['observation']}")
+        print(f"Conflictology forecast: {conflictology_results[i]['forecast']}")
+        print(f"Conflictology CRPS Score: {conflictology_results[i]['crps_score']:.4f}")
+        print(f"LSTM forecast: {lstm_results[i]['forecast']}")
+        print(f"LSTM CRPS Score: {lstm_results[i]['crps_score']:.4f}")

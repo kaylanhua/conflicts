@@ -43,8 +43,9 @@ lstm_type = 'base' # 'attention', 'base', 'multi'
 if lstm_type == 'multi':
     all_history = pd.read_csv('drc_features.csv').dropna()
 else:
-    all_history = pd.read_csv('./drc/drc_no_rolling.csv').dropna()
-    # all_history = all_history.head(140)
+    all_history = pd.read_csv('../../data/views/input_data_2019.csv')
+    all_history = all_history[all_history['country_id'] == 167]
+
 
 # NORMALIZATION SECTION 
 if lstm_type == 'multi':
@@ -201,7 +202,7 @@ elif lstm_type == 'multi':
     
 # TRAINING THE MODEL ----------------------------------------------------------------
 learning_rate = 0.01
-num_epochs = 700
+num_epochs = 500
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
