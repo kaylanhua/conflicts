@@ -24,14 +24,19 @@ class VIEWSCleaner():
         print(f"Removing columns: {columns_to_remove}")
         return country_af.drop(columns=columns_to_remove)
     
-    def plot(self):
+    def plot(self, n=None):
         data = self.features
 
         dates = data["month_id"]
         target = data["ged_sb"]
 
         plt.figure(figsize=(12, 6))
-        plt.plot(dates, target, label='UCDP Estimate')  # Changed plot to scatterplot
+        plt.plot(dates, target, label='UCDP Estimate', alpha=0.7)
+        
+        if n is not None:
+            rolling_avg = target.rolling(window=n).mean()
+            plt.plot(dates, rolling_avg, label=f'{n}-Month Rolling Average', color='red', linewidth=2)
+        
         plt.xlabel('Date')
         plt.ylabel('Fatalities')
         plt.gca().set_facecolor('#F9F5F1')
@@ -40,7 +45,7 @@ class VIEWSCleaner():
         plt.gcf().set_facecolor('#F9F5F1')
 
         plt.title(f'Fatalities Over Time (views {self.gw_id})')
-        plt.legend(['Ground Truth'])
+        plt.legend()
         plt.show()
         
     def set_war_var(self, data, date_ranges):

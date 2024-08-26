@@ -46,8 +46,9 @@ def calculate_metrics(actuals_file, forecasts_file):
         r2 = r2_score([observation], [forecast_mean])
         
         # Calculate IGN (Ignorance Score)
-        f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std)
-        ign = log_score(f_y)
+        # not sure if this is correct (i.e. if calculated and binned the same way as in VIEWS)
+        f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std) 
+        ign = log_score(f_y) 
         
         results.append({
             'month_id': i,
