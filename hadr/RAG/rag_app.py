@@ -11,6 +11,8 @@ import pandas as pd
 import os
 import json
 import plotly.express as px
+import io
+import base64
 
 # LANGCHAIN
 from langchain_community.llms import OpenAI
@@ -163,6 +165,9 @@ conflict_parser = StructuredOutputParser.from_response_schemas([conflict_schema]
 event_schema = ResponseSchema(name="events", description="List of timeline events")
 event_parser = StructuredOutputParser.from_response_schemas([event_schema])
 
+actor_schema = ResponseSchema(name="actors", description="List of main actors in the conflict")
+actor_parser = StructuredOutputParser.from_response_schemas([actor_schema])
+
 
 def query_llm_for_conflicts(country):
     llm = OpenAI(temperature=0.7)
@@ -211,6 +216,31 @@ def query_llm_for_timeline(conflict_name, start_year, end_year):
     response = llm_chain.run(conflict_name=conflict_name, start_year=start_year, end_year=end_year)
     return event_parser.parse(response)
 
+def query_llm_for_actors(conflict_name):
+    llm = OpenAI(temperature=0.7)
+    template = """
+    You are an AI assistant specializing in armed conflicts and international relations.
+    Please provide a list of the main actors (individuals, groups, or countries) involved in the {conflict_name}.
+    For each actor, provide a brief description of their role or involvement.
+    Format your response as a JSON array of objects, where each object has the following fields:
+    - name: the name of the actor
+    - description: a brief description of their role or involvement in the conflict
+    - type: the type of actor (e.g., "individual", "group", "country")
+
+    {format_instructions}
+
+    Human: List main actors in the {conflict_name}
+    AI Assistant:"""
+    
+    prompt = PromptTemplate(
+        template=template,
+        input_variables=["conflict_name"],
+        partial_variables={"format_instructions": actor_parser.get_format_instructions()}
+    )
+    llm_chain = LLMChain(prompt=prompt, llm=llm)
+    response = llm_chain.run(conflict_name=conflict_name)
+    return actor_parser.parse(response)
+
 
 def show_timeline(events):
     items = [{"id": idx + 1, "content": event["description"], "start": event["date"]} for idx, event in enumerate(events)]
@@ -220,60 +250,96 @@ def show_timeline(events):
     st.subheader("Selected item")
     st.write(timeline)
 
+if 'conflicts' not in st.session_state:
+    st.session_state.conflicts = {}
+
 def get_conflicts(country_name):
-    with st.spinner("Fetching conflicts..."):
-        conflicts_data = query_llm_for_conflicts(country_name)
-        conflicts = conflicts_data.get("conflicts", [])
-    return conflicts
+    if country_name not in st.session_state.conflicts:
+        with st.spinner("Fetching conflicts..."):
+            conflicts_data = query_llm_for_conflicts(country_name)
+            st.session_state.conflicts[country_name] = conflicts_data.get("conflicts", [])
+    return st.session_state.conflicts[country_name]
+
+def create_network_graph(actors):
+    G = nx.Graph()
+    for actor in actors:
+        G.add_node(actor['name'], description=actor['description'], type=actor.get('type', 'None'))
+    
+    # Add edges between all actors (you might want to refine this logic)
+    for i, actor1 in enumerate(actors):
+        for actor2 in actors[i+1:]:
+            G.add_edge(actor1['name'], actor2['name'])
+    
+    return G
+
+def plot_network_graph(G):
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=8, font_weight='bold')
+    
+    # Add node labels
+    labels = nx.get_node_attributes(G, 'description')
+    pos_labels = {k: (v[0], v[1]+0.1) for k, v in pos.items()}  # Adjust label positions
+    nx.draw_networkx_labels(G, pos_labels, labels, font_size=6)
+    
+    # Convert plot to image
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+    return graph_url
 
 def create_timeline(country_name):
     conflicts = get_conflicts(country_name)
     
     if conflicts:
-        print("\033[92mconflicts: ", conflicts, "\033[0m")
         st.subheader(f"Conflicts in {country_name}")
         for conflict in conflicts:
-            # TODO sometimes there is no end year 
-            end_year = conflict['end_year'] if conflict['end_year'] != "ongoing" else "Present" 
-            # TODO sometimes there is no name
-
+            end_year = conflict['end_year'] if conflict['end_year'] != "ongoing" else "Present"
+            
+            if 'timeline_events' not in st.session_state:
+                st.session_state.timeline_events = {}
+            if 'conflict_actors' not in st.session_state:
+                st.session_state.conflict_actors = {}
+            
+            conflict_key = f"{country_name}_{conflict['name']}"
             if st.button(f"{conflict['name']}: {conflict['start_year']} – {end_year}", key=f"analyze_{conflict['name'].replace(' ', '_')}"):
-                with st.spinner("Generating timeline..."):
-                    timeline_data = query_llm_for_timeline(conflict['name'], conflict['start_year'], end_year)
-                    timeline_events = timeline_data.get("events", [])
-                
-                    if timeline_events:
-                        timeline_events = [event for event in timeline_events if event.get('date') and event.get('description')]
-                        print("\033[93mtimeline events: ", timeline_events, "\033[0m")
-                        
-                        show_timeline(timeline_events)
-                    else:
-                        st.write("No timeline data retrieved.")
+                with st.spinner("Generating timeline and network graph..."):
+                    if conflict_key not in st.session_state.timeline_events:
+                        timeline_data = query_llm_for_timeline(conflict['name'], conflict['start_year'], end_year)
+                        st.session_state.timeline_events[conflict_key] = timeline_data.get("events", [])
+                    
+                    if conflict_key not in st.session_state.conflict_actors:
+                        actors_data = query_llm_for_actors(conflict['name'])
+                        print("\033[93mactors data: ", actors_data, "\033[0m")
+                        st.session_state.conflict_actors[conflict_key] = actors_data.get("actors", [])
+            
+            if conflict_key in st.session_state.timeline_events:
+                timeline_events = st.session_state.timeline_events[conflict_key]
+                if timeline_events:
+                    timeline_events = [event for event in timeline_events if event.get('date') and event.get('description')]
+                    show_timeline(timeline_events)
+                else:
+                    st.write("No timeline data retrieved.")
+            
+            if conflict_key in st.session_state.conflict_actors:
+                actors = st.session_state.conflict_actors[conflict_key]
+                if actors:
+                    st.subheader("Network of Main Actors")
+                    G = create_network_graph(actors)
+                    graph_url = plot_network_graph(G)
+                    st.image(f"data:image/png;base64,{graph_url}")
+                    
+                    st.subheader("Actor Information")
+                    for actor in actors:
+                        st.write(f"**{actor['name']}** ({actor.get('type', 'None')}): {actor['description']}")
+                else:
+                    st.write("No actor data retrieved.")
     else:
         st.write("No conflicts found for the specified country.")
     
     return conflicts
-
-
-# '''
-# NETWORK GRAPH SECTION
-# '''
-
-# def create_network_graph(vectorstore):
-#     query = "Identify the main actors involved in this conflict and their relationships."
-#     docs = vectorstore.similarity_search(query)
-#     context = "\n".join([doc.page_content for doc in docs])
-#     actors_info = query_llm(query, context)
-    
-#     # Parse the LLM response to create a network graph
-#     # This is a simplified version; you might need more sophisticated parsing
-#     G = nx.Graph()
-#     for line in actors_info.split('\n'):
-#         if '-' in line:
-#             actor1, actor2 = line.split('-')
-#             G.add_edge(actor1.strip(), actor2.strip())
-    
-#     return G, actors_info
 
 
 # '''
@@ -284,39 +350,8 @@ def main():
 
     war_name = st.text_input("Enter the name of a region:")
     if war_name:
-        # with st.spinner("Fetching and processing data..."):
-        #     end_date = datetime.now()
-        #     start_date = end_date - timedelta(days=30)  # Last 30 days
-        #     urls, response = get_gdelt_data(war_name, start_date, end_date) # returns list of urls
-        #     vectorstore = process_articles(urls)
-            
-        # TODO Works up until here, the LLM query is not going through 
-
         st.subheader("Timeline of Important Events")
         create_timeline(war_name)
-
-        # st.subheader("Network of Actors")
-        # G, actors_info = create_network_graph(vectorstore)
-        # fig, ax = plt.subplots()
-        # nx.draw(G, with_labels=True, ax=ax)
-        # st.pyplot(fig)
-        # st.write(actors_info)
-
-        # st.subheader("Recent News Articles")
-        # for article in response.get("articles", []):
-        #     st.write(f"**{article['title']}**")
-        #     st.write(article['url'])
-        #     st.write(article['seendate'])
-            
-        #     # Add a button to query the LLM about this specific article with a unique key
-        #     if st.button(f"Analyze this article", key=f"analyze_{article['url']}"):
-        #         query = f"Summarize the key points of this article about {war_name}"
-        #         docs = vectorstore.similarity_search(query)
-        #         context = "\n".join([doc.page_content for doc in docs])
-        #         analysis = query_llm(query, context)
-        #         st.write(analysis)
-            
-        #     st.write("---")
 
 if __name__ == "__main__":
     main()
