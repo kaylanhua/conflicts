@@ -1,8 +1,17 @@
 import pandas as pd
 import numpy as np
 from crps import crps_ensemble
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from scipy.stats import norm
+import math
 
-def calculate_crps(actuals_file, forecasts_file):
+# ignorance score
+def log_score(f_y):
+    if f_y <= 0:
+        return float('inf')  # Return infinity for non-positive values
+    return -math.log2(f_y)
+
+def calculate_metrics(actuals_file, forecasts_file):
     # Read actuals
     actuals = pd.read_csv(actuals_file)
     observations = actuals['outcome'].tolist()
@@ -23,12 +32,32 @@ def calculate_crps(actuals_file, forecasts_file):
 
     results = []
     for i in range(len(forecasts_array)):
-        score = crps_ensemble(forecasts_array[i], observations[i])
+        forecast = forecasts_array[i]
+        observation = observations[i]
+        crps_score = crps_ensemble(forecast, observation)
+        
+        # Calculate mean and standard deviation of forecast
+        forecast_mean = np.mean(forecast)
+        forecast_std = np.std(forecast)
+        
+        # Calculate additional metrics
+        mse = mean_squared_error([observation], [forecast_mean])
+        mae = mean_absolute_error([observation], [forecast_mean])
+        r2 = r2_score([observation], [forecast_mean])
+        
+        # Calculate IGN (Ignorance Score)
+        f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std)
+        ign = log_score(f_y)
+        
         results.append({
             'month_id': i,
-            'forecast': forecasts_array[i],
-            'observation': observations[i],
-            'crps_score': score
+            'forecast': forecast,
+            'observation': observation,
+            'crps_score': crps_score,
+            'mse': mse,
+            'mae': mae,
+            'r2': r2,
+            'ign': ign
         })
     
     return results
@@ -39,15 +68,17 @@ if __name__ == "__main__":
     conflictology_file = "DRC_Conflictology_2019.csv"
     lstm_file = "DRC_lstm_forecasts_2019.csv"
     
-    conflictology_results = calculate_crps(actuals_file, conflictology_file)
-    lstm_results = calculate_crps(actuals_file, lstm_file)
+    conflictology_results = calculate_metrics(actuals_file, conflictology_file)
+    lstm_results = calculate_metrics(actuals_file, lstm_file)
     
     print("Comparison of Conflictology and LSTM Results:")
     for i in range(len(conflictology_results)):
-        conflictology_crps = conflictology_results[i]['crps_score']
-        lstm_crps = lstm_results[i]['crps_score']
-        color = "\033[91m" if lstm_crps > conflictology_crps else "\033[92m"
+        conflictology_metrics = conflictology_results[i]
+        lstm_metrics = lstm_results[i]
+        color = "\033[91m" if lstm_metrics['crps_score'] > conflictology_metrics['crps_score'] else "\033[92m"
         print(f"{color}--------------------------------")
-        print(f"month_id: {conflictology_results[i]['month_id']}, observation: {conflictology_results[i]['observation']}")
-        print(f"Conflictology forecast: {conflictology_results[i]['forecast']}, CRPS: {conflictology_crps:.4f}")
-        print(f"LSTM forecast: {lstm_results[i]['forecast']}, CRPS: {lstm_crps:.4f}\033[0m")
+        print(f"month_id: {conflictology_metrics['month_id']}, observation: {conflictology_metrics['observation']}")
+        print(f"Conflictology forecast: {conflictology_metrics['forecast']}")
+        print(f"CRPS: {conflictology_metrics['crps_score']:.4f}, MSE: {conflictology_metrics['mse']:.4f}, MAE: {conflictology_metrics['mae']:.4f}, R²: {conflictology_metrics['r2']:.4f}, IGN: {conflictology_metrics['ign']:.4f}")
+        print(f"LSTM forecast: {lstm_metrics['forecast']}")
+        print(f"CRPS: {lstm_metrics['crps_score']:.4f}, MSE: {lstm_metrics['mse']:.4f}, MAE: {lstm_metrics['mae']:.4f}, R²: {lstm_metrics['r2']:.4f}, IGN: {lstm_metrics['ign']:.4f}\033[0m")
