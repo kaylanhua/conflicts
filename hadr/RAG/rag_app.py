@@ -18,18 +18,7 @@ import base64
 from langchain_openai import OpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.docstore.document import Document
-from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters.character import CharacterTextSplitter
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-
-# LLAMA
-from llama_index.core import ServiceContext, PromptHelper, VectorStoreIndex, SimpleDirectoryReader, set_global_service_context 
-from llama_index.core.text_splitter import TokenTextSplitter
-from llama_index.core.node_parser import SimpleNodeParser
 
 from tqdm import tqdm
 from trafilatura.sitemaps import sitemap_search
@@ -179,7 +168,7 @@ def plot_network_graph(G):
     plt.close()
     return graph_url
 
-def plot_country_data(country_name):
+def plot_country_data(country_name, n=None):
     file_name = f"../../data/views/{country_name.replace(' ', '_')}.csv"
     try:
         df = pd.read_csv(file_name)
@@ -195,6 +184,10 @@ def plot_country_data(country_name):
 
         plt.figure(figsize=(12, 6))
         plt.plot(dates, target, label='UCDP Estimate', alpha=0.7)
+        
+        if n is not None:
+            rolling_avg = target.rolling(window=n).mean()
+            plt.plot(dates, rolling_avg, label=f'{n}-Month Rolling Average', color='red', linewidth=2)
         
         plt.xlabel('Date')
         plt.ylabel('Fatalities')
@@ -268,8 +261,11 @@ def main():
 
     country_name = st.text_input("Enter the name of a region:")
     if country_name:
-        # Plot country data
-        plot_country_data(country_name)
+        # Add a slider for selecting the rolling average period
+        n_months = st.slider("Select rolling average period (months)", min_value=1, max_value=10, value=3)
+        
+        # Plot country data with the selected rolling average period
+        plot_country_data(country_name, n=n_months)
         
         st.subheader("Timeline of Important Events")
         create_timeline(country_name)

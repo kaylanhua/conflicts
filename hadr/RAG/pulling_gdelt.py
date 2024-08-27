@@ -1,7 +1,4 @@
 ## BASIC IMPORTS
-import streamlit as st
-from streamlit_timeline import st_timeline
-
 import requests
 from bs4 import BeautifulSoup
 import networkx as nx
@@ -9,10 +6,34 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import pandas as pd
 import os
-import json
 import plotly.express as px
-import io
-import base64
+
+from tqdm import tqdm
+from trafilatura.sitemaps import sitemap_search
+from trafilatura import extract_metadata
+
+# LANGCHAIN
+from langchain_openai import OpenAI
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableSequence
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.docstore.document import Document
+from langchain_community.document_loaders import TextLoader
+from langchain_text_splitters.character import CharacterTextSplitter
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+
+# LLAMA
+from llama_index.core import ServiceContext, PromptHelper, VectorStoreIndex, SimpleDirectoryReader, set_global_service_context 
+from llama_index.core.text_splitter import TokenTextSplitter
+from llama_index.core.node_parser import SimpleNodeParser
+
+## API KEYS
+import openai
+openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
+openai.api_key = os.getenv("OPENAI_API_KEY")
+print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mNO API KEY DETECTED\033[0m")
 
 
 # '''
@@ -20,11 +41,12 @@ import base64
 # '''
 def get_gdelt_data(queries, start_date, end_date, max_records=5):
     base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
-    print(queries)
+    print(f"queries: {queries}")
     
     if len(queries) > 1:
         combined_query = " OR ".join(queries)
-        lang_query = f"({combined_query} sourcelang:english)"
+        lang_query = f"({combined_query} sourcelang:english)" 
+        # TODO consider removing language
     else:
         lang_query = f"{queries[0]} sourcelang:english"
     params = {
@@ -36,11 +58,61 @@ def get_gdelt_data(queries, start_date, end_date, max_records=5):
         "maxrecords": max_records,
     }
     
-    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}"
-    print("Request URL:", request_url)
+    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}" 
+    print(f"Request URL: {request_url}")
     response = requests.get(base_url, params=params).json()
     urls = [article["url"] for article in response.get("articles", [])]
     return urls, response
+
+def gdelt_timeline(queries, timelinesmooth=5):
+    base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
+    print(f"timeline queries: {queries}")
+    
+    if len(queries) > 1:
+        combined_query = " OR ".join(queries)
+        lang_query = f"{combined_query}"
+    else: 
+        lang_query = f"{queries[0]}"
+    params = {
+        "query": lang_query,
+        "mode": "timelinevolinfo",
+        "format": "json",
+        "TIMELINESMOOTH": timelinesmooth,
+    }
+    
+    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}" 
+    print("Request URL for timeline:", request_url)
+    response = requests.get(base_url, params=params)
+    return response
+
+
+def plot_gdelt_timeline(timeline_data):
+    # Extract the data from the timeline
+    dates = []
+    values = []
+    for item in timeline_data['timeline']:
+        for data_point in item['data']:
+            dates.append(datetime.strptime(data_point['date'], '%Y%m%dT%H%M%SZ'))
+            values.append(data_point['value'])
+    
+    # Create a DataFrame
+    df = pd.DataFrame({'Date': dates, 'Volume Intensity': values})
+    
+    # Create the plot
+    fig = px.line(df, x='Date', y='Volume Intensity', 
+                  title='GDELT Timeline: Volume Intensity Over Time',
+                  labels={'Volume Intensity': 'Volume Intensity', 'Date': 'Date'},
+                  line_shape='linear')
+    
+    # Customize the layout
+    fig.update_layout(
+        xaxis_title='Date',
+        yaxis_title='Volume Intensity',
+        font=dict(size=12),
+        hovermode='x unified'
+    )
+    
+    return fig
 
 
 def create_dataset(list_of_websites: list) :
@@ -126,6 +198,25 @@ def query_llm(query, context):
     AI Assistant: """
     
     prompt = PromptTemplate(template=template, input_variables=["context", "human_input"])
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-    response = llm_chain.run(context=context, human_input=query)
+    chain = RunnableSequence(prompt | llm)
+    response = chain.invoke({"context": context, "human_input": query})
     return response
+
+def main():
+    # queries = ["rapid support forces", "militia", "RSF", "Paramilitary", "hemedti", "janjaweed"]
+    queries = ["rsf"]
+    start_date = datetime(2018, 1, 1)
+    end_date = datetime(2018, 3, 31)
+    # urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=5)
+    # print(urls)
+    
+    timeline_response = gdelt_timeline(queries, timelinesmooth=5)
+    print(timeline_response)
+    if timeline_response.status_code == 200:
+        timeline_data = timeline_response.json()
+        figure = plot_gdelt_timeline(timeline_data)
+        figure.show()
+
+if __name__ == "__main__":
+    main()
+    
