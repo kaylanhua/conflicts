@@ -13,6 +13,7 @@ import json
 import plotly.express as px
 import io
 import base64
+import time
 import plotly.graph_objects as go
 
 # LANGCHAIN
@@ -24,6 +25,9 @@ from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from tqdm import tqdm
 from trafilatura.sitemaps import sitemap_search
 from trafilatura import extract_metadata
+
+# CUSTOM IMPORTS
+from pulling_gdelt import gdelt_timeline, plot_gdelt_timeline
 
 ## API KEYS
 import openai
@@ -190,11 +194,25 @@ def plot_country_data(country_name, n=None, show_plot=True):
             xaxis_title='Date',
             yaxis_title='Fatalities',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=0, r=0, t=40, b=0)
+            margin=dict(l=0, r=0, t=80, b=0)
         )
         
-        # if show_plot:
-        #     st.plotly_chart(fig, use_container_width=True)
+        ## range slider
+        # fig.update_layout(
+        #     xaxis=dict(
+        #         rangeselector=dict(
+        #             buttons=list([
+        #                 dict(count=1, label="1m", step="month", stepmode="backward"),
+        #                 dict(count=6, label="6m", step="month", stepmode="backward"),
+        #                 dict(count=1, label="1y", step="year", stepmode="backward"),
+        #                 dict(count=5, label="5y", step="year", stepmode="backward"),
+        #                 dict(step="all")
+        #             ])
+        #         ),
+        #         rangeslider=dict(visible=True),
+        #         type="date"
+        #     )
+        # )
         
         return fig
     except FileNotFoundError:
@@ -274,8 +292,31 @@ def main():
         if show_timeline:
             st.subheader("Timeline of Important Events")
             create_timeline(country_name)
+
+    # New GDELT Timeline section
+    st.subheader("GDELT Timeline")
+    queries = st.text_input("Enter search queries (comma-separated):")
+    if queries:
+        query_list = [q.strip() for q in queries.split(',')]
         
-   
+        col1, col2 = st.columns(2)
+        with col1:
+            st.date_input("Start date", value=datetime(2018, 1, 1), key="start_date")
+        with col2:
+            st.date_input("End date", value=datetime(2018, 3, 1), key="end_date")
+        
+        if st.button("Generate GDELT Timeline"):
+            with st.spinner("Fetching GDELT data..."):
+                while st.session_state.end_date <= st.session_state.start_date:
+                    st.warning("End date must be later than start date. Waiting for adjustment...")
+                    time.sleep(1)
+                timeline_response = gdelt_timeline(query_list, st.session_state.start_date, st.session_state.end_date, timelinesmooth=5)
+                if timeline_response.status_code == 200:
+                    timeline_data = timeline_response.json()
+                    fig = plot_gdelt_timeline(timeline_data)
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.error("Failed to fetch GDELT data. Please try again.")
 
 if __name__ == "__main__":
     main()
