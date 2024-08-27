@@ -17,7 +17,7 @@ import base64
 # LANGCHAIN
 from langchain_openai import OpenAI
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.runnables import RunnableSequence
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
@@ -41,6 +41,7 @@ openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mNO API KEY DETECTED\033[0m")
 
+st.set_page_config(layout="wide")
 
 
 # '''
@@ -77,8 +78,8 @@ def query_llm_for_conflicts(country):
         input_variables=["country"],
         partial_variables={"format_instructions": conflict_parser.get_format_instructions()}
     )
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-    response = llm_chain.run(country=country)
+    chain = RunnableSequence(prompt | llm)
+    response = chain.invoke({"country": country})
     return conflict_parser.parse(response)
 
 def query_llm_for_timeline(conflict_name, start_year, end_year):
@@ -100,8 +101,8 @@ def query_llm_for_timeline(conflict_name, start_year, end_year):
         input_variables=["conflict_name", "start_year", "end_year"],
         partial_variables={"format_instructions": event_parser.get_format_instructions()}
     )
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-    response = llm_chain.run(conflict_name=conflict_name, start_year=start_year, end_year=end_year)
+    chain = RunnableSequence(prompt | llm)
+    response = chain.invoke({"conflict_name": conflict_name, "start_year": start_year, "end_year": end_year})
     return event_parser.parse(response)
 
 def query_llm_for_actors(conflict_name):
@@ -125,8 +126,8 @@ def query_llm_for_actors(conflict_name):
         input_variables=["conflict_name"],
         partial_variables={"format_instructions": actor_parser.get_format_instructions()}
     )
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-    response = llm_chain.run(conflict_name=conflict_name)
+    chain = RunnableSequence(prompt | llm)
+    response = chain.invoke({"conflict_name": conflict_name})
     return actor_parser.parse(response)
 
 
@@ -212,7 +213,7 @@ def create_timeline(country_name):
     if conflicts:
         st.subheader(f"Conflicts in {country_name}")
         for conflict in conflicts:
-            end_year = conflict['end_year'] if conflict['end_year'] != "ongoing" else "Present"
+            end_year = "Present" if conflict.get('end_year') in ["ongoing", None] else conflict.get('end_year', "Unknown")
             
             if 'timeline_events' not in st.session_state:
                 st.session_state.timeline_events = {}
