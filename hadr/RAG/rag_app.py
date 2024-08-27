@@ -13,6 +13,7 @@ import json
 import plotly.express as px
 import io
 import base64
+import plotly.graph_objects as go
 
 # LANGCHAIN
 from langchain_openai import OpenAI
@@ -168,37 +169,37 @@ def plot_network_graph(G):
     plt.close()
     return graph_url
 
-def plot_country_data(country_name, n=None):
+def plot_country_data(country_name, n=None, show_plot=True):
     file_name = f"../../data/views/{country_name.replace(' ', '_')}.csv"
     try:
         df = pd.read_csv(file_name)
-        # Read the month_key.csv file
         month_key_df = pd.read_csv('../../data/views/month_key.csv')
-        
-        # Merge the original dataframe with month_key_df based on month_id
         df = pd.merge(df, month_key_df[['month_id', 'Date']], on='month_id', how='left')
-        
-        # Convert the 'Date' column to datetime
         dates = pd.to_datetime(df['Date'], format='%b-%y')
         target = df['ged_sb']
 
-        plt.figure(figsize=(12, 6))
-        plt.plot(dates, target, label='UCDP Estimate', alpha=0.7)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=dates, y=target, mode='lines', name='UCDP Estimate'))
         
         if n is not None:
             rolling_avg = target.rolling(window=n).mean()
-            plt.plot(dates, rolling_avg, label=f'{n}-Month Rolling Average', color='red', linewidth=2)
+            fig.add_trace(go.Scatter(x=dates, y=rolling_avg, mode='lines', name=f'{n}-Month Rolling Average', line=dict(color='red', width=2)))
         
-        plt.xlabel('Date')
-        plt.ylabel('Fatalities')
-        plt.gca().spines['top'].set_color('#F9F5F1')
-        plt.gca().spines['right'].set_color('#F9F5F1')
-
-        plt.title(f'Fatalities Over Time for {country_name}')
-        plt.legend()
-        st.pyplot(plt)
+        fig.update_layout(
+            title=f'Fatalities Over Time for {country_name}',
+            xaxis_title='Date',
+            yaxis_title='Fatalities',
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=0, r=0, t=40, b=0)
+        )
+        
+        # if show_plot:
+        #     st.plotly_chart(fig, use_container_width=True)
+        
+        return fig
     except FileNotFoundError:
         st.write(f"Data for {country_name} not found.")
+        return None
 
 def create_timeline(country_name):
     conflicts = get_conflicts(country_name)
@@ -222,7 +223,6 @@ def create_timeline(country_name):
                     
                     if conflict_key not in st.session_state.conflict_actors:
                         actors_data = query_llm_for_actors(conflict['name'])
-                        print("\033[93mactors data: ", actors_data, "\033[0m")
                         st.session_state.conflict_actors[conflict_key] = actors_data.get("actors", [])
             
             if conflict_key in st.session_state.timeline_events:
@@ -259,16 +259,23 @@ def main():
     st.title("LLM conflict tracker")
     st.write("This app uses LLMs to track militia movement and visualize data on fatalities over time.")
 
+    # Create a sidebar for settings
+    with st.sidebar:
+        st.header("Settings")
+        show_timeline = st.checkbox("Show Timeline", value=False)
+        n_months = st.slider("Rolling average period (months)", min_value=1, max_value=12, value=3)
+
     country_name = st.text_input("Enter the name of a region:")
     if country_name:
-        # Add a slider for selecting the rolling average period
-        n_months = st.slider("Select rolling average period (months)", min_value=1, max_value=10, value=3)
+        fig = plot_country_data(country_name, n=n_months)
+        if 'fig' in locals():
+            st.plotly_chart(fig, use_container_width=True)
         
-        # Plot country data with the selected rolling average period
-        plot_country_data(country_name, n=n_months)
+        if show_timeline:
+            st.subheader("Timeline of Important Events")
+            create_timeline(country_name)
         
-        st.subheader("Timeline of Important Events")
-        create_timeline(country_name)
+   
 
 if __name__ == "__main__":
     main()

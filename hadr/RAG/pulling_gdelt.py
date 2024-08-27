@@ -64,7 +64,7 @@ def get_gdelt_data(queries, start_date, end_date, max_records=5):
     urls = [article["url"] for article in response.get("articles", [])]
     return urls, response
 
-def gdelt_timeline(queries, timelinesmooth=5):
+def gdelt_timeline(queries, start_date, end_date, timelinesmooth=5):
     base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
     print(f"timeline queries: {queries}")
     
@@ -76,6 +76,8 @@ def gdelt_timeline(queries, timelinesmooth=5):
     params = {
         "query": lang_query,
         "mode": "timelinevolinfo",
+        "startdatetime": start_date.strftime("%Y%m%d%H%M%S"),
+        "enddatetime": end_date.strftime("%Y%m%d%H%M%S"),
         "format": "json",
         "TIMELINESMOOTH": timelinesmooth,
     }
@@ -210,7 +212,7 @@ def main():
     # urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=5)
     # print(urls)
     
-    timeline_response = gdelt_timeline(queries, timelinesmooth=5)
+    timeline_response = gdelt_timeline(queries, start_date, end_date, timelinesmooth=5)
     print(timeline_response)
     if timeline_response.status_code == 200:
         timeline_data = timeline_response.json()
