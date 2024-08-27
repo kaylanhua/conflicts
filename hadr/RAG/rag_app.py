@@ -15,7 +15,7 @@ import io
 import base64
 
 # LANGCHAIN
-from langchain_community.llms import OpenAI
+from langchain_openai import OpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain_community.vectorstores import Chroma
@@ -42,118 +42,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mNO API KEY DETECTED\033[0m")
 
 
-# '''
-# GDELT PROCESSING SECTION
-# '''
-def get_gdelt_data(queries, start_date, end_date, max_records=5):
-    base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
-    print(queries)
-    
-    if len(queries) > 1:
-        combined_query = " OR ".join(queries)
-        lang_query = f"({combined_query} sourcelang:english)"
-    else:
-        lang_query = f"{queries[0]} sourcelang:english"
-    params = {
-        "query": lang_query,
-        "mode": "artlist",
-        "format": "json",
-        "startdatetime": start_date.strftime("%Y%m%d%H%M%S"),
-        "enddatetime": end_date.strftime("%Y%m%d%H%M%S"),
-        "maxrecords": max_records,
-    }
-    
-    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}"
-    print("Request URL:", request_url)
-    response = requests.get(base_url, params=params).json()
-    urls = [article["url"] for article in response.get("articles", [])]
-    return urls, response
-
-def create_dataset(list_of_websites: list) :
-    """
-    scrapes the data from the list of websites
-    """
-    data = []
-    print(list_of_websites)
-    for url in tqdm(list_of_websites, desc="urls"):
-        try:
-            # Send HTTP request to the URL with a timeout of 8 seconds
-            response = requests.get(url, timeout=5)
-            response.raise_for_status()  # Check for successful response
-            # Parse HTML content
-            soup = BeautifulSoup(response.content, "html.parser")
-            
-            metadata = extract_metadata(response.content)
-            title = soup.title.string
-            description = metadata.description
-            # Extract text from each paragraph
-            paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
-            content = "\n".join(paragraphs)
-            d = {
-                "url": url,
-                "title": title,
-                "body": content,
-                "description": description,
-            }
-            data.append(d)
-        except requests.exceptions.HTTPError as errh:
-            print(f"HTTP Error: {errh}")
-        except requests.exceptions.ConnectionError as errc:
-            print(f"Error Connecting: {errc}")
-        except requests.exceptions.Timeout as errt:
-            print(f"Timeout Error: {errt}")
-        except requests.RequestException as err:
-            print(f"Error during requests to {url}: {str(err)}")
-    return data
-
-def scrape(list_of_websites: list) -> None:
-    data = create_dataset(list_of_websites)
-
-    current_time = datetime.now().strftime("%d%H%M%S")
-    dataset_filename = f"./data/dataset_{current_time}.txt"
-
-    with open(dataset_filename, "w", encoding="utf-8") as file:
-        for paragraph in data:
-            file.write("\n" + paragraph["title"] + "\n")
-            file.write(paragraph["body"]+"\n\n")
-
-
-## FRAGMENTING DOCUMENTS
-def split_documents():
-    """Load the most recent file from the data folder, split it into chunks, embed each chunk and load it into the vector store."""
-    data_folder = "./data"
-    files = os.listdir(data_folder)
-    latest_file = max([os.path.join(data_folder, f) for f in files], key=os.path.getctime)
-    raw_documents = TextLoader(latest_file).load()
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    return text_splitter.split_documents(raw_documents)
-
-
-def process_articles(urls):
-    # generate documents in /data folder
-    scrape(urls)
-    # read from data folder
-    documents = split_documents()
-    # create vector store 
-    embeddings = OpenAIEmbeddings()
-    db = Chroma.from_documents(documents, embeddings)
-    return db
-
-def query_llm(query, context):
-    llm = OpenAI()
-    template = """
-    You are an AI assistant specializing in armed conflicts and international relations.
-    Use the following context to answer the question. If you can't answer based on the context, say "I don't have enough information to answer that."
-
-    Context: {context}
-
-    Human: {human_input}
-    AI Assistant: """
-    
-    prompt = PromptTemplate(template=template, input_variables=["context", "human_input"])
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
-    response = llm_chain.run(context=context, human_input=query)
-    return response
 
 # '''
 # TIMELINE SECTION
@@ -290,6 +178,34 @@ def plot_network_graph(G):
     plt.close()
     return graph_url
 
+def plot_country_data(country_name):
+    file_name = f"../../data/views/{country_name.replace(' ', '_')}.csv"
+    try:
+        df = pd.read_csv(file_name)
+        # Read the month_key.csv file
+        month_key_df = pd.read_csv('../../data/views/month_key.csv')
+        
+        # Merge the original dataframe with month_key_df based on month_id
+        df = pd.merge(df, month_key_df[['month_id', 'Date']], on='month_id', how='left')
+        
+        # Convert the 'Date' column to datetime
+        dates = pd.to_datetime(df['Date'], format='%b-%y')
+        target = df['ged_sb']
+
+        plt.figure(figsize=(12, 6))
+        plt.plot(dates, target, label='UCDP Estimate', alpha=0.7)
+        
+        plt.xlabel('Date')
+        plt.ylabel('Fatalities')
+        plt.gca().spines['top'].set_color('#F9F5F1')
+        plt.gca().spines['right'].set_color('#F9F5F1')
+
+        plt.title(f'Fatalities Over Time for {country_name}')
+        plt.legend()
+        st.pyplot(plt)
+    except FileNotFoundError:
+        st.write(f"Data for {country_name} not found.")
+
 def create_timeline(country_name):
     conflicts = get_conflicts(country_name)
     
@@ -346,12 +262,16 @@ def create_timeline(country_name):
 # APP SECTION
 # '''
 def main():
-    st.title("conflict tracker")
+    st.title("LLM conflict tracker")
+    st.write("This app uses LLMs to track militia movement and visualize data on fatalities over time.")
 
-    war_name = st.text_input("Enter the name of a region:")
-    if war_name:
+    country_name = st.text_input("Enter the name of a region:")
+    if country_name:
+        # Plot country data
+        plot_country_data(country_name)
+        
         st.subheader("Timeline of Important Events")
-        create_timeline(war_name)
+        create_timeline(country_name)
 
 if __name__ == "__main__":
     main()
