@@ -5,27 +5,41 @@ from typing import List, Dict
 from openai import OpenAI
 import pinecone
 from datetime import datetime, timedelta
+from hadr.app.pulling_gdelt import get_gdelt_data, create_dataset
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+DATA_SOURCE = '../../data/views/sudan.csv'
 
 # Initialize OpenAI and Pinecone clients
-client = OpenAI()
-pinecone.init(api_key="your-pinecone-api-key", environment="your-pinecone-environment")
-index = pinecone.Index("your-index-name")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment=os.getenv("PINECONE_ENVIRONMENT"))
+index = pinecone.Index("hadr-index")
 
-def prepare_monthly_data(year: int, month: int, news_data: str, death_count: int):
+def prepare_monthly_data(year: int, month: int, queries: List[str]):
     """
-    Prepare and save monthly news data and death count.
+    Prepare and save monthly news data using GDELT API.
     """
-    # Save news data to a text file
-    with open(f'data/news_{year}_{month:02d}.txt', 'w') as f:
-        f.write(news_data)
+    start_date = datetime(year, month, 1)
+    end_date = start_date + timedelta(days=32)
+    end_date = end_date.replace(day=1) - timedelta(days=1)
     
-    # Update historical death counts CSV
-    df = pd.read_csv('data/historical_death_counts.csv')
-    new_row = pd.DataFrame({'year': [year], 'month': [month], 'death_count': [death_count]})
-    df = pd.concat([df, new_row], ignore_index=True)
-    df.to_csv('data/historical_death_counts.csv', index=False)
+    urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=50)
+    news_data = create_dataset(urls)
+    
+    # Combine all article contents into a single string
+    combined_news = "\n\n".join([f"Title: {article['title']}\n{article['body']}" for article in news_data])
+    
+    # Save news data to a text file
+    with open(f'data/news_{year}_{month:02d}.txt', 'w', encoding='utf-8') as f:
+        f.write(combined_news)
+    
+    print(f"Saved news data for {year}-{month:02d} to data/news_{year}_{month:02d}.txt")
+    return combined_news
 
-def summarize_monthly_news(year: int, month: int) -> str:
+def summarize_monthly_news(year: int, month: int) -> str: 
+    # TODO is this the best method
     """
     Summarize the monthly news data using OpenAI's GPT model.
     """
@@ -33,7 +47,7 @@ def summarize_monthly_news(year: int, month: int) -> str:
         news_text = f.read()
     
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini", 
         messages=[
             {"role": "system", "content": "Summarize the key violent incidents, their locations, and estimated casualties from the following news articles. Limit your summary to about 500 words."},
             {"role": "user", "content": news_text}
@@ -53,7 +67,7 @@ def create_vector_embedding(year: int, month: int, summary: str, death_count: in
     Create and store vector embedding for the monthly summary.
     """
     response = client.embeddings.create(
-        model="text-embedding-ada-002",
+        model="text-embedding-ada-002", # TODO try other embedding methods
         input=summary
     )
     embedding = response.data[0].embedding
@@ -74,23 +88,35 @@ def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
     similar_months = index.query(query_embedding, top_k=top_k, include_metadata=True)
     return similar_months['matches']
 
+def load_month_key():
+    """
+    Load the month_key.csv file and return a dictionary mapping month_id to (year, month).
+    """
+    month_key_df = pd.read_csv('data/month_key.csv')
+    return {row['month_id']: (row['year'], row['month']) for _, row in month_key_df.iterrows()}
+
 def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> List[Dict]:
     """
     Get historical death counts for the specified number of past months.
     """
-    df = pd.read_csv('data/historical_death_counts.csv')
+    df = pd.read_csv(DATA_SOURCE)
+    month_key = load_month_key()
     historical_counts = []
     
+    # Find the month_id for the given year and month
+    current_month_id = next(id for id, (y, m) in month_key.items() if y == year and m == month)
+    
     for i in range(num_months):
-        past_date = datetime(year, month, 1) - timedelta(days=(i+1)*30)
-        past_year, past_month = past_date.year, past_date.month
-        past_count = df[(df['year'] == past_year) & (df['month'] == past_month)]['death_count'].values
-        if len(past_count) > 0:
-            historical_counts.append({
-                'year': past_year,
-                'month': past_month,
-                'death_count': int(past_count[0])
-            })
+        past_month_id = current_month_id - i - 1
+        if past_month_id in month_key:
+            past_year, past_month = month_key[past_month_id]
+            past_count = df[df['month_id'] == past_month_id]['ged_sb'].values
+            if len(past_count) > 0:
+                historical_counts.append({
+                    'year': past_year,
+                    'month': past_month,
+                    'death_count': int(past_count[0])
+                })
     
     return historical_counts
 
@@ -116,9 +142,9 @@ def predict_next_month(year: int, month: int) -> int:
     prompt += "\nBased on this information, predict the death count for the next month. Provide only the number."
     
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are an AI trained to predict death counts based on news summaries and historical data."},
+            {"role": "system", "content": "You are an AI trained to predict death counts in civil conflicts based on news summaries and historical data."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -149,12 +175,19 @@ def evaluate_predictions(year: int) -> Dict[str, float]:
     
     return {"MAE": mae, "RMSE": rmse}
 
-def run_prediction_cycle(year: int, month: int, news_data: str, death_count: int) -> int:
+def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     """
     Run a complete prediction cycle for a given month.
     """
-    prepare_monthly_data(year, month, news_data, death_count)
+    prepare_monthly_data(year, month, queries)
     summary = summarize_monthly_news(year, month)
+    
+    # Get the death count from the historical data
+    month_key = load_month_key()
+    month_id = next(id for id, (y, m) in month_key.items() if y == year and m == month)
+    df = pd.read_csv(DATA_SOURCE)
+    death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
+    
     create_vector_embedding(year, month, summary, death_count)
     next_month_prediction = predict_next_month(year, month)
     return next_month_prediction
@@ -163,10 +196,9 @@ if __name__ == "__main__":
     # Example usage
     current_year = 2023
     current_month = 5
-    sample_news_data = "Sample news data for the month..."
-    sample_death_count = 150
+    queries = ["conflict", "violence", "casualties", "deaths"]
     
-    prediction = run_prediction_cycle(current_year, current_month, sample_news_data, sample_death_count)
+    prediction = run_prediction_cycle(current_year, current_month, queries)
     print(f"Predicted death count for next month: {prediction}")
     
     # Evaluate predictions for the previous year

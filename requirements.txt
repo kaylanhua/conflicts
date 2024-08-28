@@ -46,3 +46,4 @@ streamlit-vis-timeline
 h2o
 transformers
 scipy
+pinecone
