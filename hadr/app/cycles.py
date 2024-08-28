@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict
 from openai import OpenAI
-import pinecone
+from pinecone import Pinecone, ServerlessSpec
 from datetime import datetime, timedelta
-from hadr.app.pulling_gdelt import get_gdelt_data, create_dataset
+from pulling_gdelt import get_gdelt_data, create_dataset
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -14,8 +14,22 @@ DATA_SOURCE = '../../data/views/sudan.csv'
 
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment=os.getenv("PINECONE_ENVIRONMENT"))
-index = pinecone.Index("hadr-index")
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("PINECONE_ENVIRONMENT")
+
+index_name = "hadr-index"
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        dimension=2,
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud='aws', 
+            region='us-east-1'
+        ) 
+    ) 
+
+index = pc.Index(index_name)
+
 
 def prepare_monthly_data(year: int, month: int, queries: List[str]):
     """
@@ -196,7 +210,7 @@ if __name__ == "__main__":
     # Example usage
     current_year = 2023
     current_month = 5
-    queries = ["conflict", "violence", "casualties", "deaths"]
+    queries = ["sudan", "rapid support force", "RSF", "janjaweed"]
     
     prediction = run_prediction_cycle(current_year, current_month, queries)
     print(f"Predicted death count for next month: {prediction}")
