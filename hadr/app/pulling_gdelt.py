@@ -132,8 +132,8 @@ def create_dataset(list_of_websites: list) :
             soup = BeautifulSoup(response.content, "html.parser")
             
             metadata = extract_metadata(response.content)
-            title = soup.title.string
-            description = metadata.description
+            title = soup.title.string if soup.title else "No title found"
+            description = metadata.description if metadata and hasattr(metadata, 'description') else "No description found"
             # Extract text from each paragraph
             paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
             content = "\n".join(paragraphs)

@@ -8,7 +8,12 @@ archive/news_sentiment/data/
 .DS_Store
 *.bin
 horizon_scan/seminal/
+*.txt
+
 *.json
+!*/hadr/app/data/*.json
 !rf_edited.json
+
 /__pycache__/
 *.pyc
+

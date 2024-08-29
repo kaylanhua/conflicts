@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from pulling_gdelt import get_gdelt_data, create_dataset
 import os
 from dotenv import load_dotenv
+from dateutil.relativedelta import relativedelta
 
 load_dotenv()
 
@@ -96,9 +97,10 @@ def create_vector_embedding(year: int, month: int, summary: str, death_count: in
     # Insert into Pinecone
     index.upsert([(f"{year}_{month:02d}", embedding, {"death_count": int(death_count)})])
 
-def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
+def get_similar_months(current_year: int, current_month: int, current_summary: str, top_k: int = 3) -> List[Dict]:
     """
     Find similar past months based on the current month's summary.
+    Only returns months that are before or equal to the current month.
     """
     response = client.embeddings.create(
         model="text-embedding-ada-002",
@@ -106,9 +108,19 @@ def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
     )
     query_embedding = response.data[0].embedding
     
-    similar_months = index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
-    print(f"****** similar months: {similar_months}\033[0m")
-    return similar_months['matches']
+    # Query more than top_k to allow for filtering
+    similar_months = index.query(vector=query_embedding, top_k=top_k*2, include_metadata=True)
+    
+    filtered_months = []
+    for match in similar_months['matches']:
+        year, month = map(int, match['id'].split('_'))
+        if year < current_year or (year == current_year and month <= current_month):
+            filtered_months.append(match)
+        if len(filtered_months) == top_k:
+            break
+    
+    print(f"****** similar months: {filtered_months}\033[0m")
+    return filtered_months[:top_k]
 
 def load_month_key():
     """
@@ -150,7 +162,7 @@ def predict_next_month(year: int, month: int) -> int:
     with open(f'data/summary_{year}_{month:02d}.json', 'r') as f:
         current_data = json.load(f)
     
-    similar_months = get_similar_months(current_data['summary'])
+    similar_months = get_similar_months(year, month, current_data['summary'])
     historical_counts = get_historical_death_counts(year, month)
     
     prompt = f"Current month summary: {current_data['summary']}\n\n"
@@ -224,20 +236,16 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         
         actual_counts.append(actual)
         predicted_counts.append(predicted)
-        print(f"Actual: {actual}, Predicted: {predicted}")
+        print(f"\033[91mActual: {actual}, Predicted: {predicted}\033[0m")
     
     mae = np.mean(np.abs(np.array(actual_counts) - np.array(predicted_counts)))
     rmse = np.sqrt(np.mean((np.array(actual_counts) - np.array(predicted_counts))**2))
-    
-    print(f"Evaluation complete. MAE: {mae}, RMSE: {rmse}")
     return {"MAE": mae, "RMSE": rmse}
 
 def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     print(f"Running prediction cycle for {year}-{month:02d}")
-    if not os.path.exists(f'data/news_{year}_{month:02d}.txt'):
-        prepare_monthly_data(year, month, queries)
     
-    summary = summarize_monthly_news(year, month)
+    prepare_and_insert_month(year, month, queries)
     
     # Get the death count from the historical data
     month_key = load_month_key()
@@ -246,10 +254,7 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
     print(f"Death count for {year}-{month:02d}: {death_count}")
     
-    create_vector_embedding(year, month, summary, death_count)
     next_month_prediction = predict_next_month(year, month)
-    
-    # Get the true value for the next month
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     next_month_id = next(id for id, (y, m) in month_key.items() if y == next_year and m == next_month)
@@ -259,18 +264,48 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     
     return next_month_prediction
 
+def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, queries: List[str]) -> None:
+    """
+    Prepare and insert data for a range of months starting from the given start date.
+    
+    :param start_year: The year to start from
+    :param start_month: The month to start from (1-12)
+    :param n_months: The number of months to process
+    :param queries: List of query terms for data preparation
+    """
+    start_date = datetime(start_year, start_month, 1)
+    
+    for i in range(n_months):
+        current_date = start_date + relativedelta(months=i)
+        current_year = current_date.year
+        current_month = current_date.month
+        
+        print(f"\033[94mPreparing and inserting data for {current_year}-{current_month:02d} ({i+1}/{n_months})\033[0m")
+        prepare_and_insert_month(current_year, current_month, queries)
+
 if __name__ == "__main__":
     # Example usage
-    current_year = 2023
-    current_month = 5
+    run_one_test = False
+    run_insertion = False
+    run_evaluation = True
+    
+    current_year = 2020
+    current_month = 1
     queries = ["sudan", "rapid support force", "RSF", "janjaweed"]
     
-    prediction = run_prediction_cycle(current_year, current_month, queries)
+    if run_one_test: 
+        print("-------------------TEST PREDICTION---------------------")
+        prediction = run_prediction_cycle(current_year, current_month, queries)
     
-    print("-------------------EVALUATION---------------------")
+    if run_insertion: 
+        print("-------------------INSERTION---------------------")
+        prepare_and_insert_range(2018, 1, 12, queries)  # Prepare and insert 24 months starting from January 2022
     
-    # Evaluate predictions for the previous year
-    evaluation_results = evaluate_predictions(current_year - 1, queries, forecast_months=1)
-    print(f"Evaluation results for {current_year - 1}:")
-    print(f"Mean Absolute Error: {evaluation_results['MAE']}")
-    print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
+    if run_evaluation: 
+        print("-------------------EVALUATION---------------------")
+        evaluation_year = 2019
+        evaluation_month = 1
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=6)
+        print(f"Evaluation results for {evaluation_year}:")
+        print(f"Mean Absolute Error: {evaluation_results['MAE']}")
+        print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
