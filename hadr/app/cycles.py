@@ -14,13 +14,17 @@ from statistics import mean, median
 
 load_dotenv()
 
-DATA_SOURCE = '../../data/views/sudan.csv'
+COUNTRY_NAME = "drc"
+COUNTRY_FOLDER = "drc_data"
+DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
+COUNTRY_ID = 167 # TODO: get country id from country name
 
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("PINECONE_ENVIRONMENT")
 
-index_name = "hadr-index-1536"
+# index_name = "hadr-index-1536" #sudan
+index_name = "hadr-1536-drc" #drc
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -49,7 +53,7 @@ def prepare_monthly_data(year: int, month: int, queries: List[str]):
     combined_news = "\n\n".join([f"Title: {article['title']}\n{article['body']}" for article in news_data])
     
     # Save news data to a text file
-    with open(f'data/news_{year}_{month:02d}.txt', 'w', encoding='utf-8') as f:
+    with open(f'{COUNTRY_FOLDER}/news_{year}_{month:02d}.txt', 'w', encoding='utf-8') as f:
         f.write(combined_news)
     
     print(f"Saved news data for {year}-{month:02d} to data/news_{year}_{month:02d}.txt")
@@ -60,7 +64,7 @@ def summarize_monthly_news(year: int, month: int) -> str:
     Summarize the monthly news data using OpenAI's GPT model.
     If a summary already exists for the given month, return it without regenerating.
     """
-    summary_file = f'data/summary_{year}_{month:02d}.json'
+    summary_file = f'{COUNTRY_FOLDER}/summary_{year}_{month:02d}.json'
     
     # Check if summary file already exists
     if os.path.exists(summary_file):
@@ -69,7 +73,7 @@ def summarize_monthly_news(year: int, month: int) -> str:
         return existing_summary['summary']
     
     # If no existing summary, generate a new one
-    with open(f'data/news_{year}_{month:02d}.txt', 'r') as f:
+    with open(f'{COUNTRY_FOLDER}/news_{year}_{month:02d}.txt', 'r') as f:
         news_text = f.read()
     
     response = client.chat.completions.create(
@@ -165,7 +169,7 @@ def predict_next_month(year: int, month: int, samples: int = 3) -> int:
     :param samples: Number of predictions to make (default: 3)
     :return: Median of the predicted death counts
     """
-    with open(f'data/summary_{year}_{month:02d}.json', 'r') as f:
+    with open(f'{COUNTRY_FOLDER}/summary_{year}_{month:02d}.json', 'r') as f:
         current_data = json.load(f)
     
     similar_months = get_similar_months(year, month, current_data['summary'])
@@ -212,7 +216,7 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
         return
 
     print(f"Preparing and inserting data for {month_id}")
-    if not os.path.exists(f'data/news_{year}_{month:02d}.txt'):
+    if not os.path.exists(f'{COUNTRY_FOLDER}/news_{year}_{month:02d}.txt'):
         prepare_monthly_data(year, month, queries)
     
     summary = summarize_monthly_news(year, month)
@@ -231,8 +235,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
     df = pd.read_csv(DATA_SOURCE)
     month_key_df = pd.read_csv('../../data/views/month_key.csv')
     
-    actual_counts = []
-    predicted_counts = []
+    predictions_data = []
     
     for month in range(1, forecast_months + 1):
         print(f"\033[92mPROCESSING MONTH {year}-{month:02d}\033[0m")
@@ -247,20 +250,31 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         
         predicted = predict_next_month(prev_year, prev_month, samples)
         
-        actual_counts.append(actual)
-        predicted_counts.append(predicted)
+        # Store predictions in the desired format
+        for i, pred in enumerate(predicted):
+            predictions_data.append({
+                'month_id': month_id,
+                'country_id': COUNTRY_ID, 
+                'draw': i,
+                'outcome': pred
+            })
+        
         print(f"\033[91mActual: {actual}, Predicted: {predicted}\033[0m")
     
-    # Calculate the mean of each prediction list
-    mean_predictions = [np.mean(pred) for pred in predicted_counts]
+    # Create a DataFrame from the predictions
+    predictions_df = pd.DataFrame(predictions_data)
     
-    # Convert actual_counts and mean_predictions to numpy arrays
-    actual_array = np.array(actual_counts)
-    pred_array = np.array(mean_predictions)
+    # Save the predictions to a CSV file
+    output_file = f'{COUNTRY_FOLDER}/{COUNTRY_NAME}_RAG_{year}.csv'
+    predictions_df.to_csv(output_file, index=False)
+    print(f"Predictions saved to {output_file}")
     
-    # Calculate MAE and RMSE
-    mae = np.mean(np.abs(actual_array - pred_array))
-    rmse = np.sqrt(np.mean((actual_array - pred_array)**2))
+    # Calculate evaluation metrics
+    actual_counts = df[df['month_id'].isin(predictions_df['month_id'].unique())]['ged_sb'].values
+    mean_predictions = predictions_df.groupby('month_id')['outcome'].mean().values
+    
+    mae = np.mean(np.abs(actual_counts - mean_predictions))
+    rmse = np.sqrt(np.mean((actual_counts - mean_predictions)**2))
     
     return {"MAE": mae, "RMSE": rmse}
 
@@ -313,7 +327,7 @@ if __name__ == "__main__":
     
     current_year = 2020
     current_month = 1
-    queries = ["sudan", "rapid support force", "RSF", "janjaweed"]
+    queries = ["M23", "DRC", "ADF", "FDLR"]
     
     samples = 3  # Default number of samples
     
@@ -330,6 +344,6 @@ if __name__ == "__main__":
         evaluation_year = 2019
         evaluation_month = 1
         evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=samples)
-        print(f"Evaluation results for {evaluation_year}:")
+        print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")  # Update this line
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
