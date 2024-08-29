@@ -106,8 +106,8 @@ def load_month_key():
     """
     Load the month_key.csv file and return a dictionary mapping month_id to (year, month).
     """
-    month_key_df = pd.read_csv('data/month_key.csv')
-    return {row['month_id']: (row['year'], row['month']) for _, row in month_key_df.iterrows()}
+    month_key_df = pd.read_csv('../../data/views/month_key.csv')
+    return {row['month_id']: (row['Year'], row['Month']) for _, row in month_key_df.iterrows()}
 
 def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> List[Dict]:
     """
@@ -193,7 +193,9 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     """
     Run a complete prediction cycle for a given month.
     """
-    prepare_monthly_data(year, month, queries)
+    if not os.path.exists(f'data/news_{year}_{month:02d}.txt'):
+        prepare_monthly_data(year, month, queries)
+    
     summary = summarize_monthly_news(year, month)
     
     # Get the death count from the historical data
