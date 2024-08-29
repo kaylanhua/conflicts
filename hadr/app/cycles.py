@@ -3,11 +3,13 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict
 from openai import OpenAI
+from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone, ServerlessSpec
 from datetime import datetime, timedelta
 from pulling_gdelt import get_gdelt_data, create_dataset
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 DATA_SOURCE = '../../data/views/sudan.csv'
@@ -16,11 +18,11 @@ DATA_SOURCE = '../../data/views/sudan.csv'
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("PINECONE_ENVIRONMENT")
 
-index_name = "hadr-index"
+index_name = "hadr-index-1536"
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
-        dimension=2,
+        dimension=1536,
         metric="cosine",
         spec=ServerlessSpec(
             cloud='aws', 
@@ -29,7 +31,6 @@ if index_name not in pc.list_indexes().names():
     ) 
 
 index = pc.Index(index_name)
-
 
 def prepare_monthly_data(year: int, month: int, queries: List[str]):
     """
@@ -53,10 +54,19 @@ def prepare_monthly_data(year: int, month: int, queries: List[str]):
     return combined_news
 
 def summarize_monthly_news(year: int, month: int) -> str: 
-    # TODO is this the best method
     """
     Summarize the monthly news data using OpenAI's GPT model.
+    If a summary already exists for the given month, return it without regenerating.
     """
+    summary_file = f'data/summary_{year}_{month:02d}.json'
+    
+    # Check if summary file already exists
+    if os.path.exists(summary_file):
+        with open(summary_file, 'r') as f:
+            existing_summary = json.load(f)
+        return existing_summary['summary']
+    
+    # If no existing summary, generate a new one
     with open(f'data/news_{year}_{month:02d}.txt', 'r') as f:
         news_text = f.read()
     
@@ -71,7 +81,7 @@ def summarize_monthly_news(year: int, month: int) -> str:
     summary = response.choices[0].message.content
     
     # Save summary to JSON file
-    with open(f'data/summary_{year}_{month:02d}.json', 'w') as f:
+    with open(summary_file, 'w') as f:
         json.dump({'year': year, 'month': month, 'summary': summary}, f)
     
     return summary
@@ -80,14 +90,11 @@ def create_vector_embedding(year: int, month: int, summary: str, death_count: in
     """
     Create and store vector embedding for the monthly summary.
     """
-    response = client.embeddings.create(
-        model="text-embedding-ada-002", # TODO try other embedding methods
-        input=summary
-    )
-    embedding = response.data[0].embedding
+    embeddings = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
+    embedding = embeddings.embed_documents([summary])[0]
     
     # Insert into Pinecone
-    index.upsert([(f"{year}_{month:02d}", embedding, {"death_count": death_count})])
+    index.upsert([(f"{year}_{month:02d}", embedding, {"death_count": int(death_count)})])
 
 def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
     """
@@ -99,7 +106,7 @@ def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
     )
     query_embedding = response.data[0].embedding
     
-    similar_months = index.query(query_embedding, top_k=top_k, include_metadata=True)
+    similar_months = index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
     return similar_months['matches']
 
 def load_month_key():
@@ -164,35 +171,67 @@ def predict_next_month(year: int, month: int) -> int:
     )
     
     prediction = response.choices[0].message.content
-    return int(prediction)
+    try:
+        return int(float(prediction))
+    except ValueError:
+        print(f"Warning: Unable to convert prediction '{prediction}' to integer. Returning 0.")
+        return 0
 
-def evaluate_predictions(year: int) -> Dict[str, float]:
-    """
-    Evaluate predictions for a given year and return error metrics.
-    """
-    df = pd.read_csv('data/historical_death_counts.csv')
-    df_year = df[df['year'] == year]
+def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
+    month_id = f"{year}_{month:02d}"
+    
+    if index.fetch([month_id]).vectors:
+        print(f"Month {month_id} already exists in the vector database. Skipping.")
+        return
+
+    print(f"Preparing and inserting data for {month_id}")
+    if not os.path.exists(f'data/news_{year}_{month:02d}.txt'):
+        prepare_monthly_data(year, month, queries)
+    
+    summary = summarize_monthly_news(year, month)
+    
+    # Get the death count from the historical data
+    month_key = load_month_key()
+    month_id_num = next(id for id, (y, m) in month_key.items() if y == year and m == month)
+    df = pd.read_csv(DATA_SOURCE)
+    death_count = df[df['month_id'] == month_id_num]['ged_sb'].values[0]
+    
+    create_vector_embedding(year, month, summary, death_count)
+    print(f"Month {month_id} has been prepared and inserted into the vector database.")
+
+def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12) -> Dict[str, float]:
+    print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
+    df = pd.read_csv(DATA_SOURCE)
+    month_key_df = pd.read_csv('../../data/views/month_key.csv')
     
     actual_counts = []
     predicted_counts = []
     
-    for _, row in df_year.iterrows():
-        month = row['month']
-        actual = row['death_count']
-        predicted = predict_next_month(year, month-1 if month > 1 else 12)  # Predict based on previous month
+    for month in range(1, forecast_months + 1):
+        print(f"\033[92mPROCESSING MONTH {year}-{month:02d}\033[0m")
+        month_id = month_key_df[(month_key_df['Year'] == year) & (month_key_df['Month'] == month)]['month_id'].values[0]
+        actual = df[df['month_id'] == month_id]['ged_sb'].values[0]
+        
+        prev_month = 12 if month == 1 else month - 1
+        prev_year = year - 1 if month == 1 else year
+        
+        # Prepare and insert the previous month if it doesn't exist
+        prepare_and_insert_month(prev_year, prev_month, queries)
+        
+        predicted = predict_next_month(prev_year, prev_month)
         
         actual_counts.append(actual)
         predicted_counts.append(predicted)
+        print(f"Actual: {actual}, Predicted: {predicted}")
     
     mae = np.mean(np.abs(np.array(actual_counts) - np.array(predicted_counts)))
     rmse = np.sqrt(np.mean((np.array(actual_counts) - np.array(predicted_counts))**2))
     
+    print(f"Evaluation complete. MAE: {mae}, RMSE: {rmse}")
     return {"MAE": mae, "RMSE": rmse}
 
 def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
-    """
-    Run a complete prediction cycle for a given month.
-    """
+    print(f"Running prediction cycle for {year}-{month:02d}")
     if not os.path.exists(f'data/news_{year}_{month:02d}.txt'):
         prepare_monthly_data(year, month, queries)
     
@@ -203,9 +242,11 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     month_id = next(id for id, (y, m) in month_key.items() if y == year and m == month)
     df = pd.read_csv(DATA_SOURCE)
     death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
+    print(f"Death count for {year}-{month:02d}: {death_count}")
     
     create_vector_embedding(year, month, summary, death_count)
     next_month_prediction = predict_next_month(year, month)
+    print(f"Prediction for next month: {next_month_prediction}")
     return next_month_prediction
 
 if __name__ == "__main__":
@@ -217,8 +258,10 @@ if __name__ == "__main__":
     prediction = run_prediction_cycle(current_year, current_month, queries)
     print(f"Predicted death count for next month: {prediction}")
     
+    print("-------------------EVALUATION---------------------")
+    
     # Evaluate predictions for the previous year
-    evaluation_results = evaluate_predictions(current_year - 1)
+    evaluation_results = evaluate_predictions(current_year - 1, queries, forecast_months=1)
     print(f"Evaluation results for {current_year - 1}:")
     print(f"Mean Absolute Error: {evaluation_results['MAE']}")
     print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
