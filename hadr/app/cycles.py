@@ -107,6 +107,7 @@ def get_similar_months(current_summary: str, top_k: int = 3) -> List[Dict]:
     query_embedding = response.data[0].embedding
     
     similar_months = index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
+    print(f"****** similar months: {similar_months}\033[0m")
     return similar_months['matches']
 
 def load_month_key():
@@ -139,6 +140,7 @@ def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> L
                     'death_count': int(past_count[0])
                 })
     
+    print(f"****** historial death data: {historical_counts}")
     return historical_counts
 
 def predict_next_month(year: int, month: int) -> int:
@@ -194,9 +196,9 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     month_key = load_month_key()
     month_id_num = next(id for id, (y, m) in month_key.items() if y == year and m == month)
     df = pd.read_csv(DATA_SOURCE)
-    death_count = df[df['month_id'] == month_id_num]['ged_sb'].values[0]
+    true_death_count = df[df['month_id'] == month_id_num]['ged_sb'].values[0]
     
-    create_vector_embedding(year, month, summary, death_count)
+    create_vector_embedding(year, month, summary, true_death_count)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
 def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12) -> Dict[str, float]:
@@ -246,7 +248,15 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     
     create_vector_embedding(year, month, summary, death_count)
     next_month_prediction = predict_next_month(year, month)
-    print(f"Prediction for next month: {next_month_prediction}")
+    
+    # Get the true value for the next month
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
+    next_month_id = next(id for id, (y, m) in month_key.items() if y == next_year and m == next_month)
+    true_value = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
+    print(f"Prediction for {next_year}-{next_month:02d}: {next_month_prediction}")
+    print(f"True value for {next_year}-{next_month:02d}: {true_value}")
+    
     return next_month_prediction
 
 if __name__ == "__main__":
@@ -256,7 +266,6 @@ if __name__ == "__main__":
     queries = ["sudan", "rapid support force", "RSF", "janjaweed"]
     
     prediction = run_prediction_cycle(current_year, current_month, queries)
-    print(f"Predicted death count for next month: {prediction}")
     
     print("-------------------EVALUATION---------------------")
     

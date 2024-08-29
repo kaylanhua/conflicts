@@ -31,7 +31,7 @@ from llama_index.core.node_parser import SimpleNodeParser
 
 ## API KEYS
 import openai
-openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
+# openai.organization = "org-raWgaVqCbuR9YlP1CIjclYHk" # Harvard
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mNO API KEY DETECTED\033[0m")
 
