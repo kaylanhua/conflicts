@@ -10,6 +10,7 @@ from pulling_gdelt import get_gdelt_data, create_dataset
 import os
 from dotenv import load_dotenv
 from dateutil.relativedelta import relativedelta
+from statistics import mean, median
 
 load_dotenv()
 
@@ -155,9 +156,14 @@ def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> L
     print(f"****** historial death data: {historical_counts}")
     return historical_counts
 
-def predict_next_month(year: int, month: int) -> int:
+def predict_next_month(year: int, month: int, samples: int = 3) -> int:
     """
     Predict the death count for the next month.
+    
+    :param year: Current year
+    :param month: Current month
+    :param samples: Number of predictions to make (default: 3)
+    :return: Median of the predicted death counts
     """
     with open(f'data/summary_{year}_{month:02d}.json', 'r') as f:
         current_data = json.load(f)
@@ -176,20 +182,27 @@ def predict_next_month(year: int, month: int) -> int:
     
     prompt += "\nBased on this information, predict the death count for the next month. Provide only the number."
     
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an AI trained to predict death counts in civil conflicts based on news summaries and historical data."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    predictions = []
+    for _ in range(samples):
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an AI trained to predict death counts in civil conflicts based on news summaries and historical data."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        prediction = response.choices[0].message.content
+        try:
+            predictions.append(int(float(prediction)))
+        except ValueError:
+            print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
     
-    prediction = response.choices[0].message.content
-    try:
-        return int(float(prediction))
-    except ValueError:
-        print(f"Warning: Unable to convert prediction '{prediction}' to integer. Returning 0.")
+    if not predictions:
+        print(f"Warning: No valid predictions were made. Returning 0.")
         return 0
+    
+    return predictions
 
 def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     month_id = f"{year}_{month:02d}"
@@ -213,7 +226,7 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     create_vector_embedding(year, month, summary, true_death_count)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
-def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12) -> Dict[str, float]:
+def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3) -> Dict[str, float]:
     print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
     df = pd.read_csv(DATA_SOURCE)
     month_key_df = pd.read_csv('../../data/views/month_key.csv')
@@ -232,17 +245,26 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         # Prepare and insert the previous month if it doesn't exist
         prepare_and_insert_month(prev_year, prev_month, queries)
         
-        predicted = predict_next_month(prev_year, prev_month)
+        predicted = predict_next_month(prev_year, prev_month, samples)
         
         actual_counts.append(actual)
         predicted_counts.append(predicted)
         print(f"\033[91mActual: {actual}, Predicted: {predicted}\033[0m")
     
-    mae = np.mean(np.abs(np.array(actual_counts) - np.array(predicted_counts)))
-    rmse = np.sqrt(np.mean((np.array(actual_counts) - np.array(predicted_counts))**2))
+    # Calculate the mean of each prediction list
+    mean_predictions = [np.mean(pred) for pred in predicted_counts]
+    
+    # Convert actual_counts and mean_predictions to numpy arrays
+    actual_array = np.array(actual_counts)
+    pred_array = np.array(mean_predictions)
+    
+    # Calculate MAE and RMSE
+    mae = np.mean(np.abs(actual_array - pred_array))
+    rmse = np.sqrt(np.mean((actual_array - pred_array)**2))
+    
     return {"MAE": mae, "RMSE": rmse}
 
-def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
+def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int = 3) -> int:
     print(f"Running prediction cycle for {year}-{month:02d}")
     
     prepare_and_insert_month(year, month, queries)
@@ -254,15 +276,15 @@ def run_prediction_cycle(year: int, month: int, queries: List[str]) -> int:
     death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
     print(f"Death count for {year}-{month:02d}: {death_count}")
     
-    next_month_prediction = predict_next_month(year, month)
+    next_month_predictions = predict_next_month(year, month, samples)
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     next_month_id = next(id for id, (y, m) in month_key.items() if y == next_year and m == next_month)
     true_value = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
-    print(f"Prediction for {next_year}-{next_month:02d}: {next_month_prediction}")
+    print(f"Predictions for {next_year}-{next_month:02d}: {next_month_predictions}")
     print(f"True value for {next_year}-{next_month:02d}: {true_value}")
     
-    return next_month_prediction
+    return next_month_predictions
 
 def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, queries: List[str]) -> None:
     """
@@ -293,9 +315,11 @@ if __name__ == "__main__":
     current_month = 1
     queries = ["sudan", "rapid support force", "RSF", "janjaweed"]
     
+    samples = 3  # Default number of samples
+    
     if run_one_test: 
         print("-------------------TEST PREDICTION---------------------")
-        prediction = run_prediction_cycle(current_year, current_month, queries)
+        print(run_prediction_cycle(current_year, current_month, queries, samples))
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
@@ -305,7 +329,7 @@ if __name__ == "__main__":
         print("-------------------EVALUATION---------------------")
         evaluation_year = 2019
         evaluation_month = 1
-        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=6)
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=samples)
         print(f"Evaluation results for {evaluation_year}:")
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
