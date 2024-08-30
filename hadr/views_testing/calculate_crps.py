@@ -67,10 +67,11 @@ def calculate_metrics(actuals_file, forecasts_file):
 if __name__ == "__main__":
     actuals_file = "DRC_cm_actuals_2019.csv"
     conflictology_file = "DRC_Conflictology_2019.csv"
-    lstm_file = "DRC_lstm_forecasts_2019.csv"
+    # lstm_file = "DRC_lstm_forecasts_2019.csv"
+    rag_file = "drc_RAG_2019.csv"
     
     conflictology_results = calculate_metrics(actuals_file, conflictology_file)
-    lstm_results = calculate_metrics(actuals_file, lstm_file)
+    lstm_results = calculate_metrics(actuals_file, rag_file)
     
     print("Comparison of Conflictology and LSTM Results:")
     for i in range(len(conflictology_results)):
