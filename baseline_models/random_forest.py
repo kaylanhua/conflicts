@@ -53,13 +53,13 @@ window_size = 5 # dictated by the above
 X = create_sliding_window(X, window_size)
 X.head() # last WINDOW_SIZE columns are the lags
 
-# ADDING VARS: set war var
-war_dates = enums.WAR_DATES.get(country)
-if war_dates:
-    cleaner.set_war_var(X, war_dates)
+# # ADDING VARS: set war var
+# war_dates = enums.WAR_DATES.get(country)
+# if war_dates:
+#     cleaner.set_war_var(X, war_dates)
 
-X = cleaner.features_war_dates
-print(X.shape)
+# X = cleaner.features_war_dates
+# print(X.shape)
 
 # ADDING VARS: set peak var w poisson process
 
@@ -91,24 +91,24 @@ plt.ylabel('Number of Fatalities')
 plt.legend()
 plt.show()
 
-## POISSON PROCESS CODE
-# calculate inter-peak intervals
-inter_peak_intervals = np.diff(peaks)
+# ## POISSON PROCESS CODE
+# # calculate inter-peak intervals
+# inter_peak_intervals = np.diff(peaks)
 
-# estimate average time between peaks (lambda)
-lambda_est = 1 / np.mean(inter_peak_intervals)
+# # estimate average time between peaks (lambda)
+# lambda_est = 1 / np.mean(inter_peak_intervals)
 
-# model the poisson process
-def poisson_process_prob(t, lambda_est):
-    return 1 - np.exp(-lambda_est * t)
+# # model the poisson process
+# def poisson_process_prob(t, lambda_est):
+#     return 1 - np.exp(-lambda_est * t)
 
-# est the probability of future peaks
-future_months = np.arange(1, 25)  # Example: next 24 months
-probabilities = poisson_process_prob(future_months, lambda_est)
-print(probabilities)
+# # est the probability of future peaks
+# future_months = np.arange(1, 25)  # Example: next 24 months
+# probabilities = poisson_process_prob(future_months, lambda_est)
+# print(probabilities)
 
-# Create a new column "peak_prob" in X
-X['peak_prob'] = X['since_war_start'].apply(lambda t: poisson_process_prob(t, lambda_est))
+# # Create a new column "peak_prob" in X
+# X['peak_prob'] = X['since_war_start'].apply(lambda t: poisson_process_prob(t, lambda_est))
 
 def remove_low_variance_features_cv(df, threshold=0.01):
     cv = df.std() / df.mean()
@@ -189,26 +189,18 @@ df = {
 
 new_forecast_df = pd.DataFrame(df)
 
-save_filename = f'../hadr/views_testing/{country}_rf_forecasts_{year}.csv'
+save_filename = f'../hadr/views_testing/{year}/{country}_rf_forecasts_{year}.csv'
 import os 
 
 # Check if the file already exists
 if os.path.isfile(save_filename):
-    # If it exists, read the existing file
     existing_df = pd.read_csv(save_filename)
-
-    # Merge the existing dataframe with the new forecast
     merged_df = existing_df.merge(new_forecast_df[['month_id', 'new_forecast']], on='month_id', how='left')
-    
-    # Rename the new column to avoid conflicts (e.g., 'forecast_2', 'forecast_3', etc.)
     new_col_name = f'forecast_{len([col for col in merged_df.columns if col.startswith("forecast")])}'
     merged_df = merged_df.rename(columns={'new_forecast': new_col_name})
-    
-    # Save the merged dataframe
     merged_df.to_csv(save_filename, index=False)
 else:
-    # If the file doesn't exist, create it with the current forecast
-    new_forecast_df = new_forecast_df.rename(columns={'new_forecast': 'forecast_1'})
+    new_forecast_df = new_forecast_df.rename(columns={'new_forecast': 'forecast_0'})
     new_forecast_df.to_csv(save_filename, index=False)
 
 print(f"Forecasts saved to {save_filename}")

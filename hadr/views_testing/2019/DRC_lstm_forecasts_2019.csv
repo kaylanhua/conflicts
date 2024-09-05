@@ -1,4 +1,4 @@
-month_id,country_id,forecast_1,forecast_0,forecast_2,forecast_3,forecast_4,forecast_5
+month_id,country_id,forecast_0,forecast_1,forecast_2,forecast_3,forecast_4,forecast_5
 469,167,78.04271,137.73985,642.971,118.97653,372.13016,748.1367
 470,167,73.12393,165.7338,416.66226,-20.201908,560.85944,464.90753
 471,167,73.478325,503.6353,222.74696,102.82258,575.74634,137.45059
