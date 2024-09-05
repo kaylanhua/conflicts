@@ -23,8 +23,8 @@ def calculate_metrics(actuals_file, forecasts_file):
         forecasts = forecasts_df.groupby('month_id')['outcome'].apply(list).reset_index(name='forecasts')
     else:
         # Handle LSTM format
-        # forecast_columns = [col for col in forecasts_df.columns if col.startswith('forecast_')]
-        forecast_columns = ['forecast_3', 'forecast_1']
+        forecast_columns = [col for col in forecasts_df.columns if col.startswith('forecast_')]
+        # forecast_columns = ['forecast_3', 'forecast_1']
         # sets negative
         forecasts = forecasts_df.groupby('month_id')[forecast_columns].apply(lambda x: np.maximum(x.values.flatten(), 0).tolist()).reset_index(name='forecasts')
     
@@ -68,19 +68,20 @@ if __name__ == "__main__":
     actuals_file = "DRC_cm_actuals_2019.csv"
     conflictology_file = "DRC_Conflictology_2019.csv"
     # lstm_file = "DRC_lstm_forecasts_2019.csv"
-    rag_file = "drc_RAG_2019.csv"
+    rf_file = "DRC_rf_forecasts_2019.csv"
+    # rag_file = "drc_RAG_2019.csv"
     
     conflictology_results = calculate_metrics(actuals_file, conflictology_file)
-    lstm_results = calculate_metrics(actuals_file, rag_file)
+    predictions = calculate_metrics(actuals_file, rf_file)
     
     print("Comparison of Conflictology and LSTM Results:")
     for i in range(len(conflictology_results)):
         conflictology_metrics = conflictology_results[i]
-        lstm_metrics = lstm_results[i]
-        color = "\033[91m" if lstm_metrics['crps_score'] > conflictology_metrics['crps_score'] else "\033[92m"
+        pred_metrics = predictions[i]
+        color = "\033[91m" if pred_metrics['crps_score'] > conflictology_metrics['crps_score'] else "\033[92m"
         print(f"{color}--------------------------------")
         print(f"month_id: {conflictology_metrics['month_id']}, observation: {conflictology_metrics['observation']}")
         print(f"Conflictology forecast: {conflictology_metrics['forecast']}")
         print(f"CRPS: {conflictology_metrics['crps_score']:.4f}, MSE: {conflictology_metrics['mse']:.4f}, MAE: {conflictology_metrics['mae']:.4f}, R²: {conflictology_metrics['r2']:.4f}, IGN: {conflictology_metrics['ign']:.4f}")
-        print(f"LSTM forecast: {lstm_metrics['forecast']}")
-        print(f"CRPS: {lstm_metrics['crps_score']:.4f}, MSE: {lstm_metrics['mse']:.4f}, MAE: {lstm_metrics['mae']:.4f}, R²: {lstm_metrics['r2']:.4f}, IGN: {lstm_metrics['ign']:.4f}\033[0m")
+        print(f"My forecast: {pred_metrics['forecast']}")
+        print(f"CRPS: {pred_metrics['crps_score']:.4f}, MSE: {pred_metrics['mse']:.4f}, MAE: {pred_metrics['mae']:.4f}, R²: {pred_metrics['r2']:.4f}, IGN: {pred_metrics['ign']:.4f}\033[0m")
