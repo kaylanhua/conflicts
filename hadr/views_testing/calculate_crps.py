@@ -13,10 +13,10 @@ year = "2019"
 actuals_file = pred_preamble + "DRC_cm_actuals_2019.csv"
 
 # BASELINE FORECAST FILES
-conflictology_file = bm_preamble + "{country}_Conflictology_{year}.csv"
-last_file = bm_preamble + "DRC_last_2019.csv"
-boot_file = bm_preamble + "DRC_boot_2019.csv"
-zero_file = bm_preamble + "DRC_zero_2019.csv"
+conflictology_file = pred_preamble + "{country}_Conflictology_{year}.csv"
+last_file = pred_preamble + "DRC_last_2019.csv"
+boot_file = pred_preamble + "DRC_boot_2019.csv"
+zero_file = pred_preamble + "DRC_zero_2019.csv"
 
 # PREDICTION FILES
 lstm_file = pred_preamble + "DRC_lstm_forecasts_2019.csv"
@@ -24,7 +24,8 @@ rf_file = pred_preamble + "DRC_rf_forecasts_2019.csv"
 rag_file = pred_preamble + "DRC_RAG_2019.csv" 
 # this is the one where the current date is included in the forecasting prompt
 rag_with_dates_file = pred_preamble + "DRC_RAG_with_dates_2019.csv" 
-
+rag_with_dates_and_country_file = pred_preamble + "DRC_RAG_with_dates-country_2019.csv"
+# set the evaluation files 
 bm_file = zero_file
 pred_file = rf_file
 
@@ -85,27 +86,50 @@ def calculate_metrics(actuals_file, forecasts_file):
     
     return results
 
-# Example usage:
-if __name__ == "__main__":
+# List of all files to evaluate
+files_to_evaluate = {
+    'Conflictology': conflictology_file,
+    'Last': last_file,
+    'Boot': boot_file,
+    'Zero': zero_file,
+    'LSTM': lstm_file,
+    'Random Forest': rf_file,
+    'RAG': rag_file,
+    'RAG with Dates': rag_with_dates_file,
+    'RAG w/ Dates and Country': rag_with_dates_and_country_file
+}
 
-    conflictology_results = calculate_metrics(actuals_file, bm_file)
-    predictions = calculate_metrics(actuals_file, pred_file)
-    
-    print("Comparison of Conflictology and LSTM Results:")
-    beat = 0
-    for i in range(len(conflictology_results)):
-        conflictology_metrics = conflictology_results[i]
-        pred_metrics = predictions[i]
-        if pred_metrics['crps_score'] > conflictology_metrics['crps_score']:
-            color = "\033[91m"
-        else:
-            color = "\033[92m"
-            beat += 1
-        print(f"{color}--------------------------------")
-        print(f"month_id: {conflictology_metrics['month_id']}, observation: {conflictology_metrics['observation']}")
-        print(f"Conflictology forecast: {conflictology_metrics['forecast']}")
-        print(f"CRPS: {conflictology_metrics['crps_score']:.4f}, MSE: {conflictology_metrics['mse']:.4f}, MAE: {conflictology_metrics['mae']:.4f}, R²: {conflictology_metrics['r2']:.4f}, IGN: {conflictology_metrics['ign']:.4f}")
-        print(f"My forecast: {pred_metrics['forecast']}")
-        print(f"CRPS: {pred_metrics['crps_score']:.4f}, MSE: {pred_metrics['mse']:.4f}, MAE: {pred_metrics['mae']:.4f}, R²: {pred_metrics['r2']:.4f}, IGN: {pred_metrics['ign']:.4f}\033[0m")
-        
-    print(f"predictions beat baseline on: {beat} / {len(conflictology_results)} months")
+def calculate_aggregate_metrics(results):
+    metrics = {
+        'CRPS': np.mean([r['crps_score'] for r in results]),
+        'MSE': np.mean([r['mse'] for r in results]),
+        'MAE': np.mean([r['mae'] for r in results]),
+        'R²': np.mean([r['r2'] for r in results]),
+        'IGN': np.mean([r['ign'] for r in results])
+    }
+    return metrics
+
+def print_latex_table(all_results):
+    print("\\begin{table}[h]")
+    print("\\centering")
+    print("\\begin{tabular}{l|ccccc}")
+    print("\\hline")
+    print("Model & CRPS & MSE & MAE & R² & IGN \\\\")
+    print("\\hline")
+    for model, metrics in all_results.items():
+        print(f"{model} & {metrics['CRPS']:.4f} & {metrics['MSE']:.4f} & {metrics['MAE']:.4f} & {metrics['R²']:.4f} & {metrics['IGN']:.4f} \\\\")
+    print("\\hline")
+    print("\\end{tabular}")
+    print("\\caption{Comparison of Model Performance}")
+    print("\\label{tab:model-comparison}")
+    print("\\end{table}")
+
+if __name__ == "__main__":
+    all_results = {}
+
+    for model, file in files_to_evaluate.items():
+        results = calculate_metrics(actuals_file, file.format(country=country, year=year))
+        aggregate_metrics = calculate_aggregate_metrics(results)
+        all_results[model] = aggregate_metrics
+
+    print_latex_table(all_results)

@@ -185,7 +185,8 @@ def predict_next_month(year: int, month: int, samples: int = 3) -> int:
         prompt += f"- Month: {count['year']}_{count['month']:02d}, Death count: {count['death_count']}\n"
     
     # The current month is {year}_{month:02d}.
-    prompt += f"\nBased on this information, predict the death count for the next month. Provide only the number."
+    # The current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo.
+    prompt += f"\nThe current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo. Based on this information, predict the death count for the next month. Provide only the number."
     
     predictions = []
     for _ in range(samples):
