@@ -6,17 +6,24 @@ from scipy.stats import norm
 import math
 
 # constants
-preamble = "2019/"
-actuals_file = preamble + "DRC_cm_actuals_2019.csv"
+pred_preamble = "drc_2019/"
+bm_preamble = "../../data/views/bm/"
+country = "DRC"
+year = "2019"
+actuals_file = pred_preamble + "DRC_cm_actuals_2019.csv"
 
-conflictology_file = preamble + "DRC_Conflictology_2019.csv"
-last_file = preamble + "DRC_last_2019.csv"
-boot_file = preamble + "DRC_boot_2019.csv"
-zero_file = preamble + "DRC_zero_2019.csv"
+# BASELINE FORECAST FILES
+conflictology_file = bm_preamble + "{country}_Conflictology_{year}.csv"
+last_file = bm_preamble + "DRC_last_2019.csv"
+boot_file = bm_preamble + "DRC_boot_2019.csv"
+zero_file = bm_preamble + "DRC_zero_2019.csv"
 
-# lstm_file = preamble + "DRC_lstm_forecasts_2019.csv"
-rf_file = preamble + "DRC_rf_forecasts_2019.csv"
-# rag_file = preamble + "DRC_RAG_2019.csv" 
+# PREDICTION FILES
+lstm_file = pred_preamble + "DRC_lstm_forecasts_2019.csv"
+rf_file = pred_preamble + "DRC_rf_forecasts_2019.csv"
+rag_file = pred_preamble + "DRC_RAG_2019.csv" 
+# this is the one where the current date is included in the forecasting prompt
+rag_with_dates_file = pred_preamble + "DRC_RAG_with_dates_2019.csv" 
 
 bm_file = zero_file
 pred_file = rf_file

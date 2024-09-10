@@ -184,7 +184,8 @@ def predict_next_month(year: int, month: int, samples: int = 3) -> int:
     for count in historical_counts:
         prompt += f"- Month: {count['year']}_{count['month']:02d}, Death count: {count['death_count']}\n"
     
-    prompt += "\nBased on this information, predict the death count for the next month. Provide only the number."
+    # The current month is {year}_{month:02d}.
+    prompt += f"\nBased on this information, predict the death count for the next month. Provide only the number."
     
     predictions = []
     for _ in range(samples):
