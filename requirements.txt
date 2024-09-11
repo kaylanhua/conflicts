@@ -47,3 +47,4 @@ h2o
 transformers
 scipy
 pinecone
+anthropic

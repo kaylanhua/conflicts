@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 from dateutil.relativedelta import relativedelta
 from statistics import mean, median
+import anthropic
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ COUNTRY_ID = 167 # TODO: get country id from country name
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("PINECONE_ENVIRONMENT")
+claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # index_name = "hadr-index-1536" #sudan
 index_name = "hadr-1536-drc" #drc
@@ -160,7 +162,7 @@ def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> L
     print(f"****** historial death data: {historical_counts}")
     return historical_counts
 
-def predict_next_month(year: int, month: int, samples: int = 3) -> int:
+def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gpt") -> int:
     """
     Predict the death count for the next month.
     
@@ -187,23 +189,41 @@ def predict_next_month(year: int, month: int, samples: int = 3) -> int:
     # The current month is {year}_{month:02d}.
     # The current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo.
     prompt += f"\nThe current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo. Based on this information, predict the death count for the next month. Provide only the number."
-    
+
     predictions = []
-    for _ in range(samples):
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are an AI trained to predict death counts in civil conflicts based on news summaries and historical data."},
-                {"role": "user", "content": prompt}
-            ]
-        )
         
-        prediction = response.choices[0].message.content
-        try:
-            predictions.append(int(float(prediction)))
-        except ValueError:
-            print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
-    
+    if model == "gpt":
+        for _ in range(samples):
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are an AI trained to predict death counts in civil conflicts based on news summaries and historical data."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            prediction = response.choices[0].message.content
+            try:
+                predictions.append(int(float(prediction)))
+            except ValueError:
+                print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
+        
+    elif model == "claude":
+        for _ in range(samples):
+            message = claude_client.messages.create(
+                model="claude-3-5-sonnet-20240620",
+                max_tokens=1024,
+                messages=[
+                    {"role": "user", "content": prompt + "\n\nNo matter what, provide only a number as your response."}
+                ]
+            )
+            print(message.content)
+            prediction = message.content[0].text
+            try:
+                predictions.append(int(float(prediction)))
+            except ValueError:
+                print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
+            
     if not predictions:
         print(f"Warning: No valid predictions were made. Returning 0.")
         return 0
@@ -280,7 +300,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
     
     return {"MAE": mae, "RMSE": rmse}
 
-def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int = 3) -> int:
+def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int = 3, model: str = "gpt") -> int:
     print(f"Running prediction cycle for {year}-{month:02d}")
     
     prepare_and_insert_month(year, month, queries)
@@ -292,7 +312,7 @@ def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int
     death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
     print(f"Death count for {year}-{month:02d}: {death_count}")
     
-    next_month_predictions = predict_next_month(year, month, samples)
+    next_month_predictions = predict_next_month(year, month, samples, model)
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     next_month_id = next(id for id, (y, m) in month_key.items() if y == next_year and m == next_month)
@@ -323,11 +343,11 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 
 if __name__ == "__main__":
     # Example usage
-    run_one_test = False
+    run_one_test = True
     run_insertion = False
-    run_evaluation = True
+    run_evaluation = False
     
-    current_year = 2020
+    current_year = 2019
     current_month = 1
     queries = ["M23", "DRC", "ADF", "FDLR"]
     
@@ -335,7 +355,7 @@ if __name__ == "__main__":
     
     if run_one_test: 
         print("-------------------TEST PREDICTION---------------------")
-        print(run_prediction_cycle(current_year, current_month, queries, samples))
+        print(run_prediction_cycle(current_year, current_month, queries, samples, model="claude"))
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
