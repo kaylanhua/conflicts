@@ -27,6 +27,7 @@ rag_with_dates_file = pred_preamble + "DRC_RAG_with_dates_2019.csv"
 rag_with_dates_and_country_file = pred_preamble + "DRC_RAG_with_dates-country_2019.csv"
 # with dates and country, claude model
 rag_claude_file = pred_preamble + "DRC_RAG_claude_2019.csv" 
+rag_fixed_file = pred_preamble + "DRC_RAG_fixed_2019.csv"
 
 # set the evaluation files 
 bm_file = zero_file
@@ -100,7 +101,8 @@ files_to_evaluate = {
     'RAG': rag_file,
     'RAG with Dates': rag_with_dates_file,
     'RAG w/ Dates and Country': rag_with_dates_and_country_file,
-    'RAG Claude': rag_claude_file
+    'RAG Claude': rag_claude_file,
+    'RAG Fixed (GPT)': rag_fixed_file
 }
 
 def calculate_aggregate_metrics(results):

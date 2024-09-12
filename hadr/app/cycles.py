@@ -15,15 +15,15 @@ import anthropic
 
 load_dotenv()
 
-# COUNTRY_NAME = "drc"
-# COUNTRY_FOLDER = "drc_data"
-# DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
-# COUNTRY_ID = 167 # TODO: get country id from country name
-
-COUNTRY_NAME = "myanmar"
-COUNTRY_FOLDER = "myanmar_data"
+COUNTRY_NAME = "drc"
+COUNTRY_FOLDER = "drc_data"
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
-COUNTRY_ID = 149 
+COUNTRY_ID = 167 # TODO: get country id from country name
+
+# COUNTRY_NAME = "myanmar"
+# COUNTRY_FOLDER = "myanmar_data"
+# DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
+# COUNTRY_ID = 149 
 
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -31,8 +31,8 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("
 claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # index_name = "hadr-index-1536" #sudan
-# index_name = "hadr-1536-drc" #drc
-index_name = "hadr-1536-myanmar" # myanmar
+index_name = "hadr-1536-drc" #drc
+# index_name = "hadr-1536-myanmar" # myanmar
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -127,8 +127,9 @@ def get_similar_months(current_year: int, current_month: int, current_summary: s
     filtered_months = []
     for match in similar_months['matches']:
         year, month = map(int, match['id'].split('_'))
-        if year < current_year or (year == current_year and month <= current_month):
+        if year < current_year or (year == current_year and month < current_month):
             filtered_months.append(match)
+        
         if len(filtered_months) == top_k:
             break
     
@@ -180,22 +181,32 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     with open(f'{COUNTRY_FOLDER}/summary_{year}_{month:02d}.json', 'r') as f:
         current_data = json.load(f)
     
+    df = pd.read_csv(DATA_SOURCE)
+
+    
     similar_months = get_similar_months(year, month, current_data['summary'])
     historical_counts = get_historical_death_counts(year, month)
     
     prompt = f"Current month summary: {current_data['summary']}\n\n"
     prompt += "Similar past months:\n"
     for match in similar_months:
-        prompt += f"- Month: {match['id']}, Death count: {match['metadata']['death_count']}\n"
+        match_year, match_month = map(int, match['id'].split('_'))
+        month_key = load_month_key()
+        month_id = next(id for id, (y, m) in month_key.items() if y == match_year and m == match_month)
+        next_month_id = month_id + 1
+        next_month_actual = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
+
+        prompt += f"- Month: {match['id']}, Death count for the next month: {next_month_actual}\n"
     
     prompt += f"\nHistorical death counts for the past 3 months:\n"
     for count in historical_counts:
         prompt += f"- Month: {count['year']}_{count['month']:02d}, Death count: {count['death_count']}\n"
     
     # The current month is {year}_{month:02d}.
-    # The current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo.
-    prompt += f"\nThe current month is {year}_{month:02d} and the country in question is the Democratic Republic of the Congo. Based on this information, predict the death count for the next month. Provide only the number."
+    # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
+    prompt += f"\nThe current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}. Based on this information, predict the death count for the next month. Provide only the number."
 
+    # print(f"****** prompt: {prompt}")
     predictions = []
         
     if model == "gpt":
@@ -357,8 +368,8 @@ if __name__ == "__main__":
     current_month = 1
     
     # # MUST start with country name
-    # queries = ["M23", "DRC", "ADF", "FDLR"] # for drc
-    queries = ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"] # for myanmar
+    queries = ["congo", "M23", "DRC", "ADF", "FDLR"] # for drc
+    # queries = ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"] # for myanmar
     
     evaluation_year = 2019
     evaluation_month = 1
