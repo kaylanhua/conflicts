@@ -40,28 +40,36 @@ print("\033[92mOPENAI API KEY DETECTED\033[0m" if openai.api_key else "\033[91mN
 # GDELT PROCESSING SECTION
 # '''
 def get_gdelt_data(queries, start_date, end_date, max_records=5):
-    base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
     print(f"queries: {queries}")
     
-    if len(queries) > 1:
-        combined_query = " OR ".join(queries)
-        lang_query = f"({combined_query} sourcelang:english)" 
-        # TODO consider removing language
-    else:
-        lang_query = f"{queries[0]} sourcelang:english"
-    params = {
-        "query": lang_query,
-        "mode": "artlist",
-        "format": "json",
-        "startdatetime": start_date.strftime("%Y%m%d%H%M%S"),
-        "enddatetime": end_date.strftime("%Y%m%d%H%M%S"),
-        "maxrecords": max_records,
-    }
+    country = queries[0]
+    lang = "sourcelang:english"
+    base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
+    urls = []
     
-    request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}" 
-    print(f"Request URL: {request_url}")
-    response = requests.get(base_url, params=params).json()
-    urls = [article["url"] for article in response.get("articles", [])]
+    for query in queries[1:]: 
+        lang_query = country + f" AND {query}" + " " + lang
+            
+        # if len(queries) > 1:
+        #     combined_query = " OR ".join(queries)
+        #     lang_query = f"({combined_query} sourcelang:english)" 
+        #     # TODO consider removing language
+        # else:
+        #     lang_query = f"{queries[0]} sourcelang:english"
+        params = {
+            "query": lang_query,
+            "mode": "artlist",
+            "format": "json",
+            "startdatetime": start_date.strftime("%Y%m%d%H%M%S"),
+            "enddatetime": end_date.strftime("%Y%m%d%H%M%S"),
+            "maxrecords": max_records,
+        }
+        
+        request_url = f"{base_url}?{'&'.join([f'{key}={value}' for key, value in params.items()])}" 
+        print(f"Request URL: {request_url}")
+        response = requests.get(base_url, params=params).json()
+        # urls = [article["url"] for article in response.get("articles", [])]
+        urls.extend([article["url"] for article in response.get("articles", [])])
     return urls, response
 
 def gdelt_timeline(queries, start_date, end_date, timelinesmooth=5):

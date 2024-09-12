@@ -15,10 +15,15 @@ import anthropic
 
 load_dotenv()
 
-COUNTRY_NAME = "drc"
-COUNTRY_FOLDER = "drc_data"
+# COUNTRY_NAME = "drc"
+# COUNTRY_FOLDER = "drc_data"
+# DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
+# COUNTRY_ID = 167 # TODO: get country id from country name
+
+COUNTRY_NAME = "myanmar"
+COUNTRY_FOLDER = "myanmar_data"
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
-COUNTRY_ID = 167 # TODO: get country id from country name
+COUNTRY_ID = 149 
 
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,7 +31,8 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("
 claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # index_name = "hadr-index-1536" #sudan
-index_name = "hadr-1536-drc" #drc
+# index_name = "hadr-1536-drc" #drc
+index_name = "hadr-1536-myanmar" # myanmar
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -48,7 +54,7 @@ def prepare_monthly_data(year: int, month: int, queries: List[str]):
     end_date = start_date + timedelta(days=32)
     end_date = end_date.replace(day=1) - timedelta(days=1)
     
-    urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=50)
+    urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=10)
     news_data = create_dataset(urls)
     
     # Combine all article contents into a single string
@@ -252,7 +258,7 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     create_vector_embedding(year, month, summary, true_death_count)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
-def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3) -> Dict[str, float]:
+def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3, model: str = "gpt") -> Dict[str, float]:
     print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
     df = pd.read_csv(DATA_SOURCE)
     month_key_df = pd.read_csv('../../data/views/month_key.csv')
@@ -270,7 +276,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         # Prepare and insert the previous month if it doesn't exist
         prepare_and_insert_month(prev_year, prev_month, queries)
         
-        predicted = predict_next_month(prev_year, prev_month, samples)
+        predicted = predict_next_month(prev_year, prev_month, samples, model)
         
         # Store predictions in the desired format
         for i, pred in enumerate(predicted):
@@ -343,13 +349,19 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 
 if __name__ == "__main__":
     # Example usage
-    run_one_test = True
+    run_one_test = False
     run_insertion = False
-    run_evaluation = False
+    run_evaluation = True
     
     current_year = 2019
     current_month = 1
-    queries = ["M23", "DRC", "ADF", "FDLR"]
+    
+    # # MUST start with country name
+    # queries = ["M23", "DRC", "ADF", "FDLR"] # for drc
+    queries = ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"] # for myanmar
+    
+    evaluation_year = 2019
+    evaluation_month = 1
     
     samples = 3  # Default number of samples
     
@@ -359,13 +371,11 @@ if __name__ == "__main__":
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(2018, 1, 12, queries)  # Prepare and insert 24 months starting from January 2022
+        prepare_and_insert_range(current_year, 1, 12, queries)  # Prepare and insert 12 months starting from January 
     
     if run_evaluation: 
         print("-------------------EVALUATION---------------------")
-        evaluation_year = 2019
-        evaluation_month = 1
-        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=samples)
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=samples, model="gpt")
         print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")  # Update this line
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")

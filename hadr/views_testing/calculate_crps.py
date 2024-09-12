@@ -25,6 +25,9 @@ rag_file = pred_preamble + "DRC_RAG_2019.csv"
 # this is the one where the current date is included in the forecasting prompt
 rag_with_dates_file = pred_preamble + "DRC_RAG_with_dates_2019.csv" 
 rag_with_dates_and_country_file = pred_preamble + "DRC_RAG_with_dates-country_2019.csv"
+# with dates and country, claude model
+rag_claude_file = pred_preamble + "DRC_RAG_claude_2019.csv" 
+
 # set the evaluation files 
 bm_file = zero_file
 pred_file = rf_file
@@ -96,7 +99,8 @@ files_to_evaluate = {
     'Random Forest': rf_file,
     'RAG': rag_file,
     'RAG with Dates': rag_with_dates_file,
-    'RAG w/ Dates and Country': rag_with_dates_and_country_file
+    'RAG w/ Dates and Country': rag_with_dates_and_country_file,
+    'RAG Claude': rag_claude_file
 }
 
 def calculate_aggregate_metrics(results):
