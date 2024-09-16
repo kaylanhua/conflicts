@@ -145,11 +145,32 @@ def print_latex_table(all_results):
     print("\\end{table}")
 
 if __name__ == "__main__":
-    all_results = {}
+    show_table = False
+    single_eval = True
+    
+    if show_table:
+        all_results = {}
 
-    for model, file in files_to_evaluate.items():
-        results = calculate_metrics(actuals_file, file.format(country=country, year=year))
-        aggregate_metrics = calculate_aggregate_metrics(results)
-        all_results[model] = aggregate_metrics
+        for model, file in files_to_evaluate.items():
+            results = calculate_metrics(actuals_file, file.format(country=country, year=year))
+            aggregate_metrics = calculate_aggregate_metrics(results)
+            all_results[model] = aggregate_metrics
 
-    print_latex_table(all_results)
+        print_latex_table(all_results)
+        
+    # -------------------------------------------------------------------------------------------------
+    
+    if single_eval:
+        all_results = {}
+        single_eval_files = {
+            'Benchmark': bm_file,
+            'Custom': pred_file
+        }
+
+        for model, file in single_eval_files.items():
+            print(f"Single Evaluation for {model}")
+            results = calculate_metrics(actuals_file, file)
+            aggregate_metrics = calculate_aggregate_metrics(results)
+            all_results[model] = aggregate_metrics
+
+        print_latex_table(all_results)
