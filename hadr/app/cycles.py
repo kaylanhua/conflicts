@@ -15,15 +15,15 @@ import anthropic
 
 load_dotenv()
 
-COUNTRY_NAME = "drc"
-COUNTRY_FOLDER = "drc_data"
-DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
-COUNTRY_ID = 167 # TODO: get country id from country name
-
-# COUNTRY_NAME = "myanmar"
-# COUNTRY_FOLDER = "myanmar_data"
+# COUNTRY_NAME = "drc"
+# COUNTRY_FOLDER = "drc_data"
 # DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
-# COUNTRY_ID = 149 
+# COUNTRY_ID = 167 # TODO: get country id from country name
+
+COUNTRY_NAME = "myanmar"
+COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
+DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
+COUNTRY_ID = 149 
 
 # Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -31,8 +31,8 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("
 claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # index_name = "hadr-index-1536" #sudan
-index_name = "hadr-1536-drc" #drc
-# index_name = "hadr-1536-myanmar" # myanmar
+# index_name = "hadr-1536-drc" #drc
+index_name = f"hadr-1536-{COUNTRY_NAME}" # myanmar
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -368,8 +368,14 @@ if __name__ == "__main__":
     current_month = 1
     
     # # MUST start with country name
-    queries = ["congo", "M23", "DRC", "ADF", "FDLR"] # for drc
-    # queries = ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"] # for myanmar
+    query_lists = {
+        "drc": ["congo", "M23", "DRC", "ADF", "FDLR"],
+        "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"]
+    }
+    
+    queries = query_lists.get(COUNTRY_NAME.lower(), [])
+    if not queries:
+        raise ValueError(f"No queries found for country: {COUNTRY_NAME}")
     
     evaluation_year = 2019
     evaluation_month = 1

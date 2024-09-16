@@ -6,11 +6,16 @@ from scipy.stats import norm
 import math
 
 # constants
-pred_preamble = "DRC_2019/"
-bm_preamble = "../../data/views/bm/"
-country = "DRC"
+# # for DRC
+# country = "DRC"
+# year = "2019"
+
+# # for Myanmar
+country = "myanmar"
 year = "2019"
-actuals_file = pred_preamble + "DRC_cm_actuals_2019.csv"
+
+pred_preamble = f"{country}_{year}/"
+actuals_file = pred_preamble + f"{country}_cm_actuals_{year}.csv"
 
 # BASELINE FORECAST FILES
 def get_file_path(file_type, model=None, variant=None):
@@ -18,7 +23,7 @@ def get_file_path(file_type, model=None, variant=None):
     
     if file_type == "baseline":
         if model == "conflictology":
-            return f"{pred_preamble}{{country}}_Conflictology_{{year}}.csv"
+            return f"{pred_preamble}{country}_Conflictology_{year}.csv"
         return f"{pred_preamble}{country}_{model}_{year}.csv"
     
     elif file_type == "prediction":
@@ -44,8 +49,8 @@ rag_claude_file = get_file_path("prediction", "rag", "claude")
 rag_fixed_file = get_file_path("prediction", "rag", "fixed")
 
 # set the evaluation files 
-bm_file = zero_file
-pred_file = rf_file
+bm_file = boot_file
+pred_file = rag_file
 
 # ignorance score
 def log_score(f_y):
@@ -147,10 +152,9 @@ def print_latex_table(all_results):
 if __name__ == "__main__":
     show_table = False
     single_eval = True
+    all_results = {}
     
     if show_table:
-        all_results = {}
-
         for model, file in files_to_evaluate.items():
             results = calculate_metrics(actuals_file, file.format(country=country, year=year))
             aggregate_metrics = calculate_aggregate_metrics(results)
@@ -161,11 +165,12 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------------------------------------
     
     if single_eval:
-        all_results = {}
         single_eval_files = {
             'Benchmark': bm_file,
             'Custom': pred_file
         }
+        
+        print(f"Single Evaluation for {country} {year} on benchmarks from {bm_file} and predictions from {pred_file}")
 
         for model, file in single_eval_files.items():
             print(f"Single Evaluation for {model}")
