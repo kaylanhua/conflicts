@@ -6,28 +6,42 @@ from scipy.stats import norm
 import math
 
 # constants
-pred_preamble = "drc_2019/"
+pred_preamble = "DRC_2019/"
 bm_preamble = "../../data/views/bm/"
 country = "DRC"
 year = "2019"
 actuals_file = pred_preamble + "DRC_cm_actuals_2019.csv"
 
 # BASELINE FORECAST FILES
-conflictology_file = pred_preamble + "{country}_Conflictology_{year}.csv"
-last_file = pred_preamble + "DRC_last_2019.csv"
-boot_file = pred_preamble + "DRC_boot_2019.csv"
-zero_file = pred_preamble + "DRC_zero_2019.csv"
+def get_file_path(file_type, model=None, variant=None):
+    base = f"{pred_preamble}{country}_{year}.csv"
+    
+    if file_type == "baseline":
+        if model == "conflictology":
+            return f"{pred_preamble}{{country}}_Conflictology_{{year}}.csv"
+        return f"{pred_preamble}{country}_{model}_{year}.csv"
+    
+    elif file_type == "prediction":
+        if model == "rag":
+            if variant:
+                return f"{pred_preamble}{country}_RAG_{variant}_{year}.csv"
+            return f"{pred_preamble}{country}_RAG_{year}.csv"
+        return f"{pred_preamble}{country}_{model}_forecasts_{year}.csv"
+
+# BASELINE FORECAST FILES
+conflictology_file = get_file_path("baseline", "conflictology")
+last_file = get_file_path("baseline", "last")
+boot_file = get_file_path("baseline", "boot")
+zero_file = get_file_path("baseline", "zero")
 
 # PREDICTION FILES
-lstm_file = pred_preamble + "DRC_lstm_forecasts_2019.csv"
-rf_file = pred_preamble + "DRC_rf_forecasts_2019.csv"
-rag_file = pred_preamble + "DRC_RAG_2019.csv" 
-# this is the one where the current date is included in the forecasting prompt
-rag_with_dates_file = pred_preamble + "DRC_RAG_with_dates_2019.csv" 
-rag_with_dates_and_country_file = pred_preamble + "DRC_RAG_with_dates-country_2019.csv"
-# with dates and country, claude model
-rag_claude_file = pred_preamble + "DRC_RAG_claude_2019.csv" 
-rag_fixed_file = pred_preamble + "DRC_RAG_fixed_2019.csv"
+lstm_file = get_file_path("prediction", "lstm")
+rf_file = get_file_path("prediction", "rf")
+rag_file = get_file_path("prediction", "rag")
+rag_with_dates_file = get_file_path("prediction", "rag", "with_dates")
+rag_with_dates_and_country_file = get_file_path("prediction", "rag", "with_dates-country")
+rag_claude_file = get_file_path("prediction", "rag", "claude")
+rag_fixed_file = get_file_path("prediction", "rag", "fixed")
 
 # set the evaluation files 
 bm_file = zero_file
