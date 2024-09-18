@@ -146,7 +146,7 @@ def get_conflicts(country_name):
 def create_network_graph(actors):
     G = nx.Graph()
     for actor in actors:
-        G.add_node(actor['name'], description=actor['description'], type=actor.get('type', 'None'))
+        G.add_node(actor['name'], description=actor.get('description', 'None'), type=actor.get('type', 'None'))
     
     # Add edges between all actors (you might want to refine this logic)
     for i, actor1 in enumerate(actors):
@@ -274,7 +274,7 @@ def create_timeline(country_name):
 # APP SECTION
 # '''
 def main():
-    st.title("LLM conflict tracker")
+    st.title("LLM Conflict Tracker")
     st.write("This app uses LLMs to track militia movement and visualize data on fatalities over time.")
 
     # Create a sidebar for settings

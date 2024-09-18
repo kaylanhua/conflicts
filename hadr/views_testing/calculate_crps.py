@@ -7,12 +7,12 @@ import math
 
 # constants
 # # for DRC
-# country = "DRC"
-# year = "2019"
+country = "DRC"
+year = "2019"
 
 # # for Myanmar
-country = "myanmar"
-year = "2019"
+# country = "myanmar"
+# year = "2019"
 
 pred_preamble = f"{country}_{year}/"
 actuals_file = pred_preamble + f"{country}_cm_actuals_{year}.csv"
@@ -129,7 +129,7 @@ def calculate_aggregate_metrics(results):
         'CRPS': np.mean([r['crps_score'] for r in results]),
         'MSE': np.mean([r['mse'] for r in results]),
         'MAE': np.mean([r['mae'] for r in results]),
-        'R²': np.mean([r['r2'] for r in results]),
+        # 'R²': np.mean([r['r2'] for r in results]),
         'IGN': np.mean([r['ign'] for r in results])
     }
     return metrics
@@ -137,12 +137,12 @@ def calculate_aggregate_metrics(results):
 def print_latex_table(all_results):
     print("\\begin{table}[h]")
     print("\\centering")
-    print("\\begin{tabular}{l|ccccc}")
+    print("\\begin{tabular}{l|cccc}")
     print("\\hline")
-    print("Model & CRPS & MSE & MAE & R² & IGN \\\\")
+    print("Model & CRPS & MSE & MAE & IGN \\\\")
     print("\\hline")
     for model, metrics in all_results.items():
-        print(f"{model} & {metrics['CRPS']:.4f} & {metrics['MSE']:.4f} & {metrics['MAE']:.4f} & {metrics['R²']:.4f} & {metrics['IGN']:.4f} \\\\")
+        print(f"{model} & {metrics['CRPS']:.4f} & {metrics['MSE']:.4f} & {metrics['MAE']:.4f} & {metrics['IGN']:.4f} \\\\")
     print("\\hline")
     print("\\end{tabular}")
     print("\\caption{Comparison of Model Performance}")
@@ -150,8 +150,8 @@ def print_latex_table(all_results):
     print("\\end{table}")
 
 if __name__ == "__main__":
-    show_table = False
-    single_eval = True
+    show_table = True
+    single_eval = False
     all_results = {}
     
     if show_table:
