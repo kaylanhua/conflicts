@@ -1,18 +1,16 @@
+import os
 import pandas as pd
 import numpy as np
 from crps import crps_ensemble
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from scipy.stats import norm
 import math
+import matplotlib.pyplot as plt
+from matplotlib.table import Table
 
 # constants
-# # for DRC
-country = "DRC"
+country = "myanmar"
 year = "2019"
-
-# # for Myanmar
-# country = "myanmar"
-# year = "2019"
 
 pred_preamble = f"{country}_{year}/"
 actuals_file = pred_preamble + f"{country}_cm_actuals_{year}.csv"
@@ -80,6 +78,12 @@ def calculate_metrics(actuals_file, forecasts_file):
     for i in range(len(forecasts_array)):
         forecast = forecasts_array[i]
         observation = observations[i]
+        
+        # Skip empty forecasts
+        if len(forecast) == 0:
+            print(f"Warning: Empty forecast for month_id {i}. Skipping.")
+            continue
+        
         crps_score = crps_ensemble(forecast, observation)
         
         # Calculate mean and standard deviation of forecast
@@ -89,10 +93,8 @@ def calculate_metrics(actuals_file, forecasts_file):
         # Calculate additional metrics
         mse = mean_squared_error([observation], [forecast_mean])
         mae = mean_absolute_error([observation], [forecast_mean])
-        r2 = r2_score([observation], [forecast_mean])
         
         # Calculate IGN (Ignorance Score)
-        # not sure if this is correct (i.e. if calculated and binned the same way as in VIEWS)
         f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std) 
         ign = log_score(f_y) 
         
@@ -103,7 +105,6 @@ def calculate_metrics(actuals_file, forecasts_file):
             'crps_score': crps_score,
             'mse': mse,
             'mae': mae,
-            'r2': r2,
             'ign': ign
         })
     
@@ -125,11 +126,13 @@ files_to_evaluate = {
 }
 
 def calculate_aggregate_metrics(results):
+    if not results:
+        return {metric: float('nan') for metric in ['CRPS', 'MSE', 'MAE', 'IGN']}
+    
     metrics = {
         'CRPS': np.mean([r['crps_score'] for r in results]),
         'MSE': np.mean([r['mse'] for r in results]),
         'MAE': np.mean([r['mae'] for r in results]),
-        # 'R²': np.mean([r['r2'] for r in results]),
         'IGN': np.mean([r['ign'] for r in results])
     }
     return metrics
@@ -149,33 +152,49 @@ def print_latex_table(all_results):
     print("\\label{tab:model-comparison}")
     print("\\end{table}")
 
+def get_all_prediction_files(directory):
+    return [f for f in os.listdir(directory) if f.endswith('.csv') and f != os.path.basename(actuals_file)]
+
+def visualize_table(all_results):
+    # Sort the results based on CRPS score
+    sorted_results = dict(sorted(all_results.items(), key=lambda item: item[1]['CRPS']))
+
+    fig, ax = plt.subplots(figsize=(12, len(sorted_results) * 0.5 + 1))
+    ax.axis('off')
+    ax.axis('tight')
+
+    data = [[model] + [f"{metrics[m]:.4f}" for m in ['CRPS', 'MSE', 'MAE', 'IGN']] 
+            for model, metrics in sorted_results.items()]
+    
+    table = ax.table(cellText=data,
+                     colLabels=['Model', 'CRPS', 'MSE', 'MAE', 'IGN'],
+                     loc='center',
+                     cellLoc='center')
+    
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1.2, 1.2)
+
+    plt.title(f"Comparison of Model Performance for {country} {year} (Sorted by CRPS)")
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == "__main__":
     show_table = True
-    single_eval = False
     all_results = {}
     
     if show_table:
-        for model, file in files_to_evaluate.items():
-            results = calculate_metrics(actuals_file, file.format(country=country, year=year))
-            aggregate_metrics = calculate_aggregate_metrics(results)
-            all_results[model] = aggregate_metrics
-
-        print_latex_table(all_results)
+        prediction_files = get_all_prediction_files(pred_preamble)
         
-    # -------------------------------------------------------------------------------------------------
-    
-    if single_eval:
-        single_eval_files = {
-            'Benchmark': bm_file,
-            'Custom': pred_file
-        }
-        
-        print(f"Single Evaluation for {country} {year} on benchmarks from {bm_file} and predictions from {pred_file}")
+        for file in prediction_files:
+            model_name = os.path.splitext(file)[0].replace(f"{country}_", "").replace(f"_{year}", "")
+            file_path = os.path.join(pred_preamble, file)
+            try:
+                results = calculate_metrics(actuals_file, file_path)
+                aggregate_metrics = calculate_aggregate_metrics(results)
+                all_results[model_name] = aggregate_metrics
+            except Exception as e:
+                print(f"Error processing {file}: {str(e)}")
+                all_results[model_name] = {metric: float('nan') for metric in ['CRPS', 'MSE', 'MAE', 'IGN']}
 
-        for model, file in single_eval_files.items():
-            print(f"Single Evaluation for {model}")
-            results = calculate_metrics(actuals_file, file)
-            aggregate_metrics = calculate_aggregate_metrics(results)
-            all_results[model] = aggregate_metrics
-
-        print_latex_table(all_results)
+        visualize_table(all_results)

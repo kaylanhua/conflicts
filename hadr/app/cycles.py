@@ -29,8 +29,8 @@ def get_country_id(country_name):
 
 
 ### -------CONSTANTS------- ###
-COUNTRY_NAME = "drc"
-# COUNTRY_NAME = "myanmar"
+# COUNTRY_NAME = "drc"
+COUNTRY_NAME = "myanmar"
 # # TESTING_COUNTRY_FOLDER = f"../views_testing/{COUNTRY_NAME}_{YEAR}"
 
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
@@ -218,7 +218,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     
     # The current month is {year}_{month:02d}.
     # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
-    prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."
+    prompt += f"\n The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}. Based on this information, predict the death count for the next month. Provide only the number."
 
     # print(f"****** prompt: {prompt}")
     predictions = []
