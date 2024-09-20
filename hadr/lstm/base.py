@@ -5,7 +5,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from fuzzywuzzy import process
 
+import sys
+sys.path.append('../../')
+from components.universal import get_country_id
 
 # DATA SECTION ----------------------------------------------------------------
 def create_sequences(data, seq_length, n_ahead):
@@ -37,14 +41,24 @@ def create_multivariate_sequences(input_sequences, output_sequence, n_steps_in, 
     return np.array(X), np.array(y)
 
 # TOGGLES
-country = 'drc'
+country = 'myanmar'
 lstm_type = 'base' # 'attention', 'base', 'multi'
+country_key_df = pd.read_csv('../../data/views/country_key.csv')
+
+def get_country_id(country_name):
+    best_match = process.extractOne(country_name, country_key_df['name'])
+    if best_match[1] >= 80:  # Threshold for a good match
+        return country_key_df[country_key_df['name'] == best_match[0]]['id'].values[0]
+    else:
+        raise ValueError(f"No close match found for country name: {country_name}")
+
+COUNTRY_ID = get_country_id(country)
 
 if lstm_type == 'multi':
     all_history = pd.read_csv('drc_features.csv').dropna()
 else:
     all_history = pd.read_csv('../../data/views/input_data_2019.csv')
-    all_history = all_history[all_history['country_id'] == 167]
+    all_history = all_history[all_history['country_id'] == COUNTRY_ID]
 
 
 # NORMALIZATION SECTION 

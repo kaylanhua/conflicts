@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import os
+from fuzzywuzzy import process
 # Add the project root directory to the Python path
 import sys
 sys.path.append('/Users/kaylahuang/Desktop/conflicts/hadr')
@@ -33,12 +34,23 @@ def create_sequences(data, seq_length, n_ahead):
     return np.array(xs), np.array(ys)
 
 # TOGGLES
-country = 'drc'
+country = 'afghanistan'
 lstm_type = 'base'
+
+country_key_df = pd.read_csv('../../data/views/country_key.csv')
+
+def get_country_id(country_name):
+    best_match = process.extractOne(country_name, country_key_df['name'])
+    if best_match[1] >= 80:  # Threshold for a good match
+        return country_key_df[country_key_df['name'] == best_match[0]]['id'].values[0]
+    else:
+        raise ValueError(f"No close match found for country name: {country_name}")
+
+COUNTRY_ID = get_country_id(country)
 
 # Load and preprocess data
 all_history = pd.read_csv('../../data/views/input_data_2019.csv')
-all_history = all_history[all_history['country_id'] == 167]
+all_history = all_history[all_history['country_id'] == COUNTRY_ID]
 
 # Filter data up to October of the previous year (2018 in this case)
 train_data = all_history['ged_sb'].tolist()
