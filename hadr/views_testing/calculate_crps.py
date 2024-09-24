@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.table import Table
 
 # constants
-country = "myanmar"
+country = "drc"
 year = "2019"
 
 pred_preamble = f"{country}_{year}/"

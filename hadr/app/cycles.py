@@ -29,14 +29,26 @@ def get_country_id(country_name):
 
 
 ### -------CONSTANTS------- ###
+MAX_RECORDS = 30
+
 # COUNTRY_NAME = "drc"
-COUNTRY_NAME = "myanmar"
+# COUNTRY_NAME = "myanmar"
+COUNTRY_NAME = "afghanistan"
 # # TESTING_COUNTRY_FOLDER = f"../views_testing/{COUNTRY_NAME}_{YEAR}"
 
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
 COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
+# COUNTRY_FOLDER = f"{COUNTRY_NAME}_general_data"
 COUNTRY_ID = get_country_id(COUNTRY_NAME)
 print(f"COUNTRY_ID: {COUNTRY_ID}")
+
+MODEL_CHOICE = "gpt" # "gpt" or "claude"
+DATA_PERTURB = "" # or "" for militia movement
+SAMPLES = 3
+
+
+
+
 
 ### -------INITIALIZATION------- ###
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -44,9 +56,12 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # , environment=os.getenv("
 claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 ### -------INDEX------- ###
+# these are for militia movement
 # index_name = "hadr-index-1536" #sudan
 # index_name = "hadr-1536-drc" #drc
-index_name = f"hadr-1536-{COUNTRY_NAME}" # myanmar
+index_name = f"hadr-1536-{COUNTRY_NAME}" # militia movement
+# index_name = f"hadr-general-{COUNTRY_NAME}"
+
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -68,7 +83,7 @@ def prepare_monthly_data(year: int, month: int, queries: List[str]):
     end_date = start_date + timedelta(days=32)
     end_date = end_date.replace(day=1) - timedelta(days=1)
     
-    urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=10)
+    urls, _ = get_gdelt_data(queries, start_date, end_date, max_records=MAX_RECORDS)
     news_data = create_dataset(urls)
     
     # Combine all article contents into a single string
@@ -218,7 +233,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     
     # The current month is {year}_{month:02d}.
     # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
-    prompt += f"\n The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}. Based on this information, predict the death count for the next month. Provide only the number."
+    prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."
 
     # print(f"****** prompt: {prompt}")
     predictions = []
@@ -319,7 +334,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
     
     # Save the predictions to a CSV file
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f'../views_testing/{COUNTRY_NAME}_{year}/{COUNTRY_NAME}_RAG_{year}_{current_time}.csv'
+    output_file = f'../views_testing/{COUNTRY_NAME}_{year}/{COUNTRY_NAME}_RAG_{year}_{DATA_PERTURB}{current_time}.csv'
     predictions_df.to_csv(output_file, index=False)
     print(f"Predictions saved to {output_file}")
     
@@ -376,16 +391,20 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 if __name__ == "__main__":
     # Example usage
     run_one_test = False
-    run_insertion = False
-    run_evaluation = True
+    run_insertion = True
+    run_evaluation = False
     
     current_year = 2017
     current_month = 1
     
     # # MUST start with country name
     query_lists = {
-        "drc": ["drc", "M23", "ADF", "FDLR"],
-        "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"]
+        # "drc": ["drc", "M23", "ADF", "FDLR"],
+        "drc": ["drc"],
+        # "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"],
+        "myanmar": ["myanmar"],
+        "afghanistan": ["afghanistan", "taliban", "IS-KP", "ISIS", "ANSF", "Haqqani Network"],
+        # "afghanistan": ["afghanistan"]
     }
     
     queries = query_lists.get(COUNTRY_NAME.lower(), [])
@@ -395,19 +414,19 @@ if __name__ == "__main__":
     evaluation_year = 2019
     evaluation_month = 1
     
-    samples = 3 # Default number of samples
+    # samples = 3 # Default number of samples
     
     if run_one_test: 
         print("-------------------TEST PREDICTION---------------------")
-        print(run_prediction_cycle(current_year, current_month, queries, samples, model="claude"))
+        print(run_prediction_cycle(current_year, current_month, queries, samples=SAMPLES, model=MODEL_CHOICE))
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(current_year, start_month=1, n_months=12, queries=queries)  # Prepare and insert 12 months starting from January 
+        prepare_and_insert_range(current_year, start_month=1, n_months=24, queries=queries)  # Prepare and insert 12 months starting from January 
     
     if run_evaluation: 
         print("-------------------EVALUATION---------------------")
-        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=samples, model="claude")
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE)
         print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")  # Update this line
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
