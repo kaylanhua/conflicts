@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.table import Table
 
 # constants
-country = "drc"
+country = "myanmar"
 year = "2019"
 
 pred_preamble = f"{country}_{year}/"
@@ -138,14 +138,18 @@ def calculate_aggregate_metrics(results):
     return metrics
 
 def print_latex_table(all_results):
+    # Sort the results based on MSE score
+    sorted_results = dict(sorted(all_results.items(), key=lambda item: item[1]['MSE']))
+    
     print("\\begin{table}[h]")
     print("\\centering")
     print("\\begin{tabular}{l|cccc}")
     print("\\hline")
     print("Model & CRPS & MSE & MAE & IGN \\\\")
     print("\\hline")
-    for model, metrics in all_results.items():
-        print(f"{model} & {metrics['CRPS']:.4f} & {metrics['MSE']:.4f} & {metrics['MAE']:.4f} & {metrics['IGN']:.4f} \\\\")
+    for model, metrics in sorted_results.items():
+        model_name = model.replace('_', ' ')  # Replace underscores with spaces
+        print(f"{model_name} & {metrics['CRPS']:.4f} & {metrics['MSE']:.4f} & {metrics['MAE']:.4f} & {metrics['IGN']:.4f} \\\\")
     print("\\hline")
     print("\\end{tabular}")
     print("\\caption{Comparison of Model Performance}")
@@ -153,7 +157,7 @@ def print_latex_table(all_results):
     print("\\end{table}")
 
 def get_all_prediction_files(directory):
-    return [f for f in os.listdir(directory) if f.endswith('.csv') and f != os.path.basename(actuals_file)]
+    return [f for f in os.listdir(directory) if f.endswith('.csv') and f != actuals_file.split('/')[-1]]
 
 def visualize_table(all_results):
     # Sort the results based on CRPS score
@@ -181,6 +185,7 @@ def visualize_table(all_results):
 
 if __name__ == "__main__":
     show_table = True
+    use_latex = True  # Toggle this variable to switch between LaTeX and matplotlib
     all_results = {}
     
     if show_table:
@@ -197,4 +202,7 @@ if __name__ == "__main__":
                 print(f"Error processing {file}: {str(e)}")
                 all_results[model_name] = {metric: float('nan') for metric in ['CRPS', 'MSE', 'MAE', 'IGN']}
 
-        visualize_table(all_results)
+        if use_latex:
+            print_latex_table(all_results)
+        else:
+            visualize_table(all_results)
