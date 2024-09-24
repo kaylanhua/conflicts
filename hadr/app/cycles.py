@@ -29,7 +29,7 @@ def get_country_id(country_name):
 
 
 ### -------CONSTANTS------- ###
-MAX_RECORDS = 30
+MAX_RECORDS = 10
 
 # COUNTRY_NAME = "drc"
 # COUNTRY_NAME = "myanmar"
@@ -42,7 +42,7 @@ COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
 COUNTRY_ID = get_country_id(COUNTRY_NAME)
 print(f"COUNTRY_ID: {COUNTRY_ID}")
 
-MODEL_CHOICE = "gpt" # "gpt" or "claude"
+MODEL_CHOICE = "claude" # "gpt" or "claude"
 DATA_PERTURB = "" # or "" for militia movement
 SAMPLES = 3
 
@@ -57,8 +57,6 @@ claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 ### -------INDEX------- ###
 # these are for militia movement
-# index_name = "hadr-index-1536" #sudan
-# index_name = "hadr-1536-drc" #drc
 index_name = f"hadr-1536-{COUNTRY_NAME}" # militia movement
 # index_name = f"hadr-general-{COUNTRY_NAME}"
 
@@ -137,7 +135,7 @@ def create_vector_embedding(year: int, month: int, summary: str, death_count: in
     embedding = embeddings.embed_documents([summary])[0]
     
     # Insert into Pinecone
-    index.upsert([(f"{year}_{month:02d}", embedding, {"death_count": int(death_count)})])
+    index.upsert([(f"{year}_{month:02d}", embedding, {"type": "militia"})])
 
 def get_similar_months(current_year: int, current_month: int, current_summary: str, top_k: int = 3) -> List[Dict]:
     """
@@ -391,8 +389,8 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 if __name__ == "__main__":
     # Example usage
     run_one_test = False
-    run_insertion = True
-    run_evaluation = False
+    run_insertion = False
+    run_evaluation = True
     
     current_year = 2017
     current_month = 1
@@ -401,9 +399,9 @@ if __name__ == "__main__":
     query_lists = {
         # "drc": ["drc", "M23", "ADF", "FDLR"],
         "drc": ["drc"],
-        # "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"],
-        "myanmar": ["myanmar"],
-        "afghanistan": ["afghanistan", "taliban", "IS-KP", "ISIS", "ANSF", "Haqqani Network"],
+        "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"],
+        # "myanmar": ["myanmar"],
+        "afghanistan": ["afghanistan", "taliban", "ISKP", "ISIS", "ANSF", "Haqqani Network"],
         # "afghanistan": ["afghanistan"]
     }
     
@@ -422,7 +420,7 @@ if __name__ == "__main__":
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(current_year, start_month=1, n_months=24, queries=queries)  # Prepare and insert 12 months starting from January 
+        prepare_and_insert_range(current_year, start_month=1, n_months=36, queries=queries)  # Prepare and insert 12 months starting from January 
     
     if run_evaluation: 
         print("-------------------EVALUATION---------------------")
