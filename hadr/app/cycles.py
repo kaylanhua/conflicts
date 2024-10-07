@@ -42,7 +42,7 @@ COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
 COUNTRY_ID = get_country_id(COUNTRY_NAME)
 print(f"COUNTRY_ID: {COUNTRY_ID}")
 
-MODEL_CHOICE = "gpt" # "gpt" or "claude"
+MODEL_CHOICE = "claude" # "gpt" or "claude"
 DATA_PERTURB = "" # or "" for militia movement
 SAMPLES = 3
 
@@ -411,9 +411,9 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 
 if __name__ == "__main__":
     # Example usage
-    run_one_test = True
+    run_one_test = False
     run_insertion = False
-    run_evaluation = False
+    run_evaluation = True
     
     current_year = 2019
     current_month = 1
