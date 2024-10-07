@@ -32,8 +32,8 @@ def get_country_id(country_name):
 MAX_RECORDS = 10
 
 # COUNTRY_NAME = "drc"
-# COUNTRY_NAME = "myanmar"
-COUNTRY_NAME = "afghanistan"
+COUNTRY_NAME = "myanmar"
+# COUNTRY_NAME = "afghanistan"
 # # TESTING_COUNTRY_FOLDER = f"../views_testing/{COUNTRY_NAME}_{YEAR}"
 
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
@@ -42,7 +42,7 @@ COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
 COUNTRY_ID = get_country_id(COUNTRY_NAME)
 print(f"COUNTRY_ID: {COUNTRY_ID}")
 
-MODEL_CHOICE = "claude" # "gpt" or "claude"
+MODEL_CHOICE = "gpt" # "gpt" or "claude"
 DATA_PERTURB = "" # or "" for militia movement
 SAMPLES = 3
 
@@ -196,6 +196,27 @@ def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> L
     print(f"****** historial death data: {historical_counts}")
     return historical_counts
 
+def scrub_summary(summary: str, model: str = "gpt") -> str:
+    print(f"****** scrubbing summary: {summary}")
+    if model == "gpt":
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an AI trained to scrub summaries of news articles of any identifiable, real-world people, places, organizations, and dates. Replace these with generic placeholders ('Person A' instead of 'John Doe', 'Location A' instead of 'Tokyo, Japan', 'Organization A' instead of 'The Red Cross'). Do not change any other text or context. Return only the scrubbed summary."},
+                {"role": "user", "content": summary}
+            ]
+        )
+            
+        scrubbed_summary = response.choices[0].message.content
+        if not scrubbed_summary:
+            print("Scrubbed summary is empty. Returning original summary.")
+            return summary
+        
+        return scrubbed_summary
+    
+    elif model == "claude":
+        return summary
+
 def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gpt") -> int:
     """
     Predict the death count for the next month.
@@ -214,7 +235,9 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     similar_months = get_similar_months(year, month, current_data['summary'])
     historical_counts = get_historical_death_counts(year, month)
     
-    prompt = f"Current month summary: {current_data['summary']}\n\n"
+    scrubbed_summary = scrub_summary(current_data['summary'])
+    
+    prompt = f"Current month summary: {scrubbed_summary}\n\n"
     prompt += "Similar past months:\n"
     for match in similar_months:
         match_year, match_month = map(int, match['id'].split('_'))
@@ -233,7 +256,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
     prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."
 
-    # print(f"****** prompt: {prompt}")
+    print(f"****** THE PREDICTION PROMPT: {prompt}")
     predictions = []
         
     if model == "gpt":
@@ -388,11 +411,11 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
 
 if __name__ == "__main__":
     # Example usage
-    run_one_test = False
+    run_one_test = True
     run_insertion = False
-    run_evaluation = True
+    run_evaluation = False
     
-    current_year = 2017
+    current_year = 2019
     current_month = 1
     
     # # MUST start with country name
