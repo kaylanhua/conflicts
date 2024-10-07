@@ -80,30 +80,41 @@ def create_dataset(data):
     return processed_data
 
 def main():
-    query = "aid"
-    country = "syria"
+    country = "myanmar"
+    queries = ["ULA", "Arakan", "TNLA", "shan state", "KIA"]
     start_date = datetime(2023, 1, 1)
     end_date = datetime(2023, 3, 31)
+    max_records = 10
+
+    all_data = []
+
+    for query in queries:
+        combined_query = f"{country} AND {query}"
+        print(f"Querying ReliefWeb for: {combined_query}")
+        
+        data = get_reliefweb_data(combined_query, country, start_date, end_date, max_records)
+        print(f"Fetched {len(data['data'])} reports for query: {combined_query}")
+        
+        all_data.extend(data['data'])
+
+    print(f"Total reports fetched: {len(all_data)}")
+
+    # Process articles and create vector store
+    processed_data = create_dataset({'data': all_data})
+    print(processed_data)
     
-    # Fetch data
-    data = get_reliefweb_data(query, country, start_date, end_date, max_records=10)
-    print(data)
-    print(f"Fetched {len(data['data'])} reports")
-    
-    # # Process articles and create vector store
-    # processed_data = create_dataset(data)
     # scrape(processed_data)
     # db = process_articles(processed_data)
-    
+
     # # Query the LLM
-    # user_query = "What are the main humanitarian challenges in Syria?"
+    # user_query = "What are the main humanitarian challenges in Myanmar?"
     # context = db.similarity_search(user_query, k=3)
     # response = query_llm(user_query, context)
     # print(response)
-    
+
     # # Generate timeline data (but don't plot it)
-    # timeline_data = reliefweb_timeline(query, country, start_date, end_date)
+    # timeline_data = reliefweb_timeline(country, country, start_date, end_date)
     # print(timeline_data)
-    
+
 if __name__ == "__main__":
     main()
