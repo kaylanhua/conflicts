@@ -7,10 +7,15 @@ from scipy.stats import norm
 import math
 import matplotlib.pyplot as plt
 from matplotlib.table import Table
+import sys
 
 # constants
-country = "drc"
-year = "2019"
+if len(sys.argv) < 2:
+    print("Please provide a country name as an argument.")
+    sys.exit(1)
+
+country = sys.argv[1].lower()
+year = "2019"  # You might want to make this an argument too in the future
 
 pred_preamble = f"{country}_{year}/"
 actuals_file = pred_preamble + f"{country}_cm_actuals_{year}.csv"
@@ -185,7 +190,7 @@ def visualize_table(all_results):
 
 if __name__ == "__main__":
     show_table = True
-    use_latex = True  # Toggle this variable to switch between LaTeX and matplotlib
+    use_latex = False  # Toggle this variable to switch between LaTeX and matplotlib
     all_results = {}
     
     if show_table:

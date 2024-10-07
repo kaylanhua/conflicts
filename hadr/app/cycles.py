@@ -14,6 +14,7 @@ from statistics import mean, median
 import anthropic
 import pandas as pd
 from fuzzywuzzy import process
+import sys
 # from components.universal import get_country_id
 
 load_dotenv()
@@ -31,10 +32,16 @@ def get_country_id(country_name):
 ### -------CONSTANTS------- ###
 MAX_RECORDS = 10
 
+# Add this near the top of the file, after imports
+if len(sys.argv) < 2:
+    print("Please provide a country name as an argument.")
+    sys.exit(1)
+
+COUNTRY_NAME = sys.argv[1].lower()
+
 # COUNTRY_NAME = "drc"
-COUNTRY_NAME = "myanmar"
+# COUNTRY_NAME = "myanmar"
 # COUNTRY_NAME = "afghanistan"
-# # TESTING_COUNTRY_FOLDER = f"../views_testing/{COUNTRY_NAME}_{YEAR}"
 
 DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
 COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
@@ -196,26 +203,33 @@ def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> L
     print(f"****** historial death data: {historical_counts}")
     return historical_counts
 
-def scrub_summary(summary: str, model: str = "gpt") -> str:
+def scrub_summary(summary: str, scrub_all: bool = False) -> str:
     print(f"****** scrubbing summary: {summary}")
-    if model == "gpt":
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are an AI trained to scrub summaries of news articles of any identifiable, real-world people, places, organizations, and dates. Replace these with generic placeholders ('Person A' instead of 'John Doe', 'Location A' instead of 'Tokyo, Japan', 'Organization A' instead of 'The Red Cross'). Do not change any other text or context. Return only the scrubbed summary."},
-                {"role": "user", "content": summary}
-            ]
-        )
-            
-        scrubbed_summary = response.choices[0].message.content
-        if not scrubbed_summary:
-            print("Scrubbed summary is empty. Returning original summary.")
-            return summary
-        
-        return scrubbed_summary
+    system_content = "You are an AI trained to scrub summaries of news articles. "
+    if scrub_all:
+        system_content += "Replace any identifiable real-world people, organizations, places, and dates with generic placeholders ('Person A' instead of 'John Doe', 'Organization A' instead of 'The Red Cross', 'Location A' instead of 'Tokyo, Japan', 'Date A' instead of 'January 1, 2023'). "
+    else:
+        system_content += "Replace only dates with the month (if applicable) and a year placeholder (e.g. 'January, Year 4' instead of 'January 1, 2023' or 'Year 1' instead of '2019'). Keep the distance between the years the same. "
+    system_content += "Do not change any other text or context. Return only the scrubbed summary."
+
+    print(f"****** system content: {system_content}")
     
-    elif model == "claude":
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": summary}
+        ]
+    )
+        
+    scrubbed_summary = response.choices[0].message.content
+    if not scrubbed_summary:
+        print("Scrubbed summary is empty. Returning original summary.")
         return summary
+    
+    print("\n")
+    return scrubbed_summary
+    
 
 def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gpt") -> int:
     """
@@ -235,23 +249,27 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     similar_months = get_similar_months(year, month, current_data['summary'])
     historical_counts = get_historical_death_counts(year, month)
     
-    scrubbed_summary = scrub_summary(current_data['summary'])
+    scrubbed_summary = scrub_summary(current_data['summary'], scrub_all=False)
     
     prompt = f"Current month summary: {scrubbed_summary}\n\n"
     prompt += "Similar past months:\n"
-    for match in similar_months:
+    similarity_labels = ["Most similar", "Second most similar", "Third most similar"]
+    for i, match in enumerate(similar_months[:3]):
         match_year, match_month = map(int, match['id'].split('_'))
         month_key = load_month_key()
         month_id = next(id for id, (y, m) in month_key.items() if y == match_year and m == match_month)
         next_month_id = month_id + 1
         next_month_actual = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
 
-        prompt += f"- Month: {match['id']}, Death count for the next month: {next_month_actual}\n"
+        # prompt += f"- Month: {match['id']}, Death count for the next month: {next_month_actual}\n"
+        prompt += f"- Month: {similarity_labels[i]}, Death count for the next month: {next_month_actual}\n"
     
     prompt += f"\nHistorical death counts for the past 3 months:\n"
-    for count in historical_counts:
-        prompt += f"- Month: {count['year']}_{count['month']:02d}, Death count: {count['death_count']}\n"
+    # for count in historical_counts:
+    #     prompt += f"- Month: {count['year']}_{count['month']:02d}, Death count: {count['death_count']}\n"
     
+    for i, count in enumerate(historical_counts, start=1):
+        prompt += f"- Month: {i} month{'s' if i > 1 else ''} before, Death count: {count['death_count']}\n"
     # The current month is {year}_{month:02d}.
     # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
     prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."

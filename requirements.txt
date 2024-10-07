@@ -49,3 +49,4 @@ scipy
 pinecone
 anthropic
 fuzzywuzzy
+chromadb
