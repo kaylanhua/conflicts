@@ -34,7 +34,8 @@ def create_target_dataset(year):
     return target_dataset
 
 # Create datasets for each year
-years = [2018, 2019, 2020, 2021, 2024]
+# years = [2018, 2019, 2020, 2021, 2024]
+years = [2022, 2023]
 for year in years:
     # Create and save input dataset
     # dataset = create_dataset(year)
