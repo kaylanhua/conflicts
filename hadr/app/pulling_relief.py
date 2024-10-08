@@ -58,50 +58,46 @@ def create_dataset(data):
     processed_data = []
     for item in tqdm(data['data'], desc="Processing reports"):
         try:
-            url = item['fields']['url']
+            url = item['href']
             title = item['fields']['title']
-            body = item['fields'].get('body', '')
-            
-            # If body is empty, try to fetch content from the URL
-            if not body:
-                response = requests.get(url, timeout=5)
-                soup = BeautifulSoup(response.content, "html.parser")
-                paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
-                body = "\n".join(paragraphs)
+            response = requests.get(url, timeout=5)
+            soup = BeautifulSoup(response.content, "html.parser")
+            paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
+            body = "\n".join(paragraphs)
             
             processed_data.append({
                 "url": url,
                 "title": title,
                 "body": body,
             })
+            
         except Exception as e:
             print(f"Error processing report: {str(e)}")
     
     return processed_data
 
 def main():
-    country = "myanmar"
-    queries = ["ULA", "Arakan", "TNLA", "shan state", "KIA"]
-    start_date = datetime(2023, 1, 1)
-    end_date = datetime(2023, 3, 31)
+    country = "somalia"
+    queries = ["Al-Shabaab", "AMISOM", "SNA", "ISS"]
+    start_date = datetime(2015, 6, 1)
+    end_date = datetime(2015, 6, 30)
     max_records = 10
 
     all_data = []
 
     for query in queries:
-        combined_query = f"{country} AND {query}"
-        print(f"Querying ReliefWeb for: {combined_query}")
+        print(f"Querying ReliefWeb for: {query} in {country} from {start_date} to {end_date}")
         
-        data = get_reliefweb_data(combined_query, country, start_date, end_date, max_records)
-        print(f"Fetched {len(data['data'])} reports for query: {combined_query}")
+        data = get_reliefweb_data(query, country, start_date, end_date, max_records)
+        print(f"Fetched {len(data['data'])} reports for query: {query}")
         
         all_data.extend(data['data'])
 
     print(f"Total reports fetched: {len(all_data)}")
+    print(all_data)
 
     # Process articles and create vector store
     processed_data = create_dataset({'data': all_data})
-    print(processed_data)
     
     # scrape(processed_data)
     # db = process_articles(processed_data)
