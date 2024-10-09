@@ -231,7 +231,7 @@ def scrub_summary(summary: str, scrub_all: bool = False) -> str:
     return scrubbed_summary
     
 
-def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gpt") -> int:
+def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> int:
     """
     Predict the death count for the next month.
     
@@ -272,13 +272,22 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
         prompt += f"- Month: {i} month{'s' if i > 1 else ''} before, Death count: {count['death_count']}\n"
     # The current month is {year}_{month:02d}.
     # The current month is {year}_{month:02d} and the country in question is {COUNTRY_NAME}.
-    prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."
+    
+    if prediction_type == "point":
+        prompt += f"\n Based on this information, predict the death count for the next month. Provide only the number."
+    elif prediction_type == "distribution":
+        prompt += f"\n Based on this information, predict a distribution for the death count for the next month. Provide the distribution in the form of an array of three numbers [low, median, high] where low and high are the bounds of the prediction interval. ONLY return the array with no other text."
 
     print(f"****** THE PREDICTION PROMPT: {prompt}")
     predictions = []
+    
+    if prediction_type == "point":
+        repeat = samples
+    else:
+        repeat = 1
         
     if model == "gpt":
-        for _ in range(samples):
+        for _ in range(repeat):
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -294,18 +303,27 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
                 print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
         
     elif model == "claude":
-        for _ in range(samples):
+        if prediction_type == "point":
+            prompt += "\n\nNo matter what, provide only a number as your response."
+            
+        for _ in range(repeat):
             message = claude_client.messages.create(
                 model="claude-3-5-sonnet-20240620",
                 max_tokens=1024,
                 messages=[
-                    {"role": "user", "content": prompt + "\n\nNo matter what, provide only a number as your response."}
+                    {"role": "user", "content": prompt}
                 ]
             )
             print(message.content)
+            
             prediction = message.content[0].text
             try:
-                predictions.append(int(float(prediction)))
+                if prediction_type == "point":
+                    predictions.append(int(float(prediction)))
+                elif prediction_type == "distribution":
+                    print(f"****** THE DISTRIBUTION PREDICTION: {prediction}")
+                    predictions = [int(x.strip()) for x in prediction.strip('[]').split(',')]
+                    print(f"****** THE split: {predictions}")
             except ValueError:
                 print(f"Warning: Unable to convert prediction '{prediction}' to integer. Skipping this sample.")
             
@@ -313,6 +331,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
         print(f"Warning: No valid predictions were made. Returning 0.")
         return 0
     
+    print(f"****** THE PREDICTIONS: {predictions}")
     return predictions
 
 def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
@@ -337,7 +356,7 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     create_vector_embedding(year, month, summary, true_death_count)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
-def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3, model: str = "gpt") -> Dict[str, float]:
+def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> Dict[str, float]:
     print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
     df = pd.read_csv(DATA_SOURCE)
     month_key_df = pd.read_csv('../../data/views/month_key.csv')
@@ -355,7 +374,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         # Prepare and insert the previous month if it doesn't exist
         prepare_and_insert_month(prev_year, prev_month, queries)
         
-        predicted = predict_next_month(prev_year, prev_month, samples, model)
+        predicted = predict_next_month(prev_year, prev_month, samples, model, prediction_type)
         
         # Store predictions in the desired format
         for i, pred in enumerate(predicted):
@@ -386,7 +405,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
     
     return {"MAE": mae, "RMSE": rmse}
 
-def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int = 3, model: str = "gpt") -> int:
+def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> int:
     print(f"Running prediction cycle for {year}-{month:02d}")
     
     prepare_and_insert_month(year, month, queries)
@@ -398,7 +417,7 @@ def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int
     death_count = df[df['month_id'] == month_id]['ged_sb'].values[0]
     print(f"Death count for {year}-{month:02d}: {death_count}")
     
-    next_month_predictions = predict_next_month(year, month, samples, model)
+    next_month_predictions = predict_next_month(year, month, samples, model, prediction_type)
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     next_month_id = next(id for id, (y, m) in month_key.items() if y == next_year and m == next_month)
@@ -465,7 +484,7 @@ if __name__ == "__main__":
     
     if run_evaluation: 
         print("-------------------EVALUATION---------------------")
-        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE)
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE, prediction_type="distribution")
         print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")  # Update this line
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
