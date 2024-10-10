@@ -29,7 +29,8 @@ def get_file_path(file_type, model=None, variant=None):
         return f"{pred_preamble}{country}_{model}_forecasts_{year}.csv"
 
 def log_score(f_y):
-    return float('inf') if f_y <= 0 else -math.log2(f_y)
+    epsilon = 1e-10  # Small value to avoid log(0)
+    return -np.log2(f_y + epsilon)
 
 def calculate_metrics(actuals_file, forecasts_file):
     actuals = pd.read_csv(actuals_file)
@@ -55,11 +56,11 @@ def calculate_metrics(actuals_file, forecasts_file):
         
         crps_score = crps_ensemble(forecast, observation)
         forecast_mean = np.mean(forecast)
-        forecast_std = np.std(forecast)
+        forecast_std = np.std(forecast) + 1e-10  # Add small epsilon to avoid division by zero
         mse = mean_squared_error([observation], [forecast_mean])
         mae = mean_absolute_error([observation], [forecast_mean])
-        f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std) 
-        ign = log_score(f_y) 
+        f_y = norm.pdf(observation, loc=forecast_mean, scale=forecast_std)
+        ign = log_score(f_y)
         
         results.append({
             'month_id': i,
@@ -124,6 +125,15 @@ def visualize_table(all_results):
     table.auto_set_font_size(False)
     table.set_fontsize(9)
     table.scale(1.2, 1.2)
+
+    # Highlight rows based on model name
+    for i, model in enumerate(sorted_results.keys()):
+        if "RAG" in model:
+            for j in range(5):  # 5 columns
+                table[(i+1, j)].set_facecolor('lightgreen')
+        else:
+            for j in range(5):  # 5 columns
+                table[(i+1, j)].set_facecolor('lightyellow')
 
     plt.title(f"Comparison of Model Performance for {country} {year} (Sorted by CRPS)")
     plt.tight_layout()

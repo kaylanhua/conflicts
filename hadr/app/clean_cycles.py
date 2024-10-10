@@ -25,7 +25,7 @@ MAX_RECORDS = 10
 MODEL_CHOICE = "claude"  # "gpt" or "claude"
 DATA_PERTURB = ""  # or "" for militia movement
 SAMPLES = 3
-USE_CHROMA = True  
+USE_CHROMA = False  
 
 # Check for country name argument
 if len(sys.argv) < 2:
