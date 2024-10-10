@@ -51,13 +51,6 @@ def get_gdelt_data(queries, start_date, end_date, max_records=5):
         
         for query in queries[1:]: 
             lang_query = country + f" AND {query}" + " " + lang
-                
-            # if len(queries) > 1:
-            #     combined_query = " OR ".join(queries)
-            #     lang_query = f"({combined_query} sourcelang:english)" 
-            #     # TODO consider removing language
-            # else:
-            #     lang_query = f"{queries[0]} sourcelang:english"
             params = {
                 "query": lang_query,
                 "mode": "artlist",
