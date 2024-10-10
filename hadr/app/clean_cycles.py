@@ -115,7 +115,7 @@ def summarize_monthly_news(year: int, month: int) -> str:
     
     return summary
 
-def create_vector_embedding(year: int, month: int, summary: str, death_count: int):
+def create_vector_embedding(year: int, month: int, summary: str, feature: str):
     embeddings = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
     embedding = embeddings.embed_documents([summary])[0]
     
@@ -123,7 +123,7 @@ def create_vector_embedding(year: int, month: int, summary: str, death_count: in
         chroma_collection.add(
             documents=[summary],
             embeddings=[embedding],
-            metadatas=[{"year": year, "month": month, "death_count": death_count}],
+            metadatas=[{"year": year, "month": month, "country": COUNTRY_NAME, "feature": feature}],
             ids=[f"{year}_{month:02d}"]
         )
     else:
@@ -298,7 +298,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     print(f"****** THE PREDICTIONS: {predictions}")
     return predictions
 
-def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
+def prepare_and_insert_month(year: int, month: int, queries: List[str], feature: str) -> None:
     if not os.path.exists(COUNTRY_FOLDER):
         os.makedirs(COUNTRY_FOLDER)
         print(f"Created folder: {COUNTRY_FOLDER}")
@@ -325,10 +325,10 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str]) -> None:
     df = pd.read_csv(DATA_SOURCE)
     true_death_count = df[df['month_id'] == month_id_num]['ged_sb'].values[0]
     
-    create_vector_embedding(year, month, summary, true_death_count)
+    create_vector_embedding(year, month, summary, feature)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
-def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 12, samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> Dict[str, float]:
+def evaluate_predictions(year: int, queries: List[str], feature: str, forecast_months: int = 12, samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> Dict[str, float]:
     print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
     df = pd.read_csv(DATA_SOURCE)
     month_key_df = pd.read_csv('../../data/views/month_key.csv')
@@ -343,7 +343,7 @@ def evaluate_predictions(year: int, queries: List[str], forecast_months: int = 1
         prev_month = 12 if month == 1 else month - 1
         prev_year = year - 1 if month == 1 else year
         
-        prepare_and_insert_month(prev_year, prev_month, queries)
+        prepare_and_insert_month(prev_year, prev_month, queries, feature)
         
         predicted = predict_next_month(prev_year, prev_month, samples, model, prediction_type)
         
@@ -412,12 +412,14 @@ if __name__ == "__main__":
     current_month = 1
     
     query_lists = {
-        "drc": ["drc", "M23", "ADF", "FDLR"],
-        "myanmar": ["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"],
-        "afghanistan": ["afghanistan", "taliban", "ISKP", "ISIS", "ANSF", "Haqqani Network"],
+        "drc": (["drc", "M23", "ADF", "FDLR"], "militia activity"),
+        "myanmar": (["myanmar", "ULA", "Arakan", "TNLA", "shan state", "KIA"], "militia activity"),
+        "afghanistan": (["afghanistan", "taliban", "ISKP", "ISIS", "ANSF", "Haqqani Network"], "militia activity"),
+        "somalia": (["somalia", "Al-Shabaab", "AMISOM", "SNA", "ISS"], "militia activity"),
+        "syria": (["syria", "refugee", "displaced", "asylum seeker", "humanitarian crisis"], "refugee movements"),
     }
     
-    queries = query_lists.get(COUNTRY_NAME.lower(), [])
+    queries, feature = query_lists.get(COUNTRY_NAME.lower(), ([], None))
     if not queries:
         raise ValueError(f"No queries found for country: {COUNTRY_NAME}")
     
@@ -426,15 +428,15 @@ if __name__ == "__main__":
     
     if run_one_test: 
         print("-------------------TEST PREDICTION---------------------")
-        print(run_prediction_cycle(current_year, current_month, queries, samples=SAMPLES, model=MODEL_CHOICE))
+        print(run_prediction_cycle(current_year, current_month, queries, samples=SAMPLES, model=MODEL_CHOICE, feature=feature))
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(current_year, start_month=1, n_months=36, queries=queries)
+        prepare_and_insert_range(current_year, start_month=1, n_months=36, queries=queries, feature=feature)
     
     if run_evaluation: 
         print("-------------------EVALUATION---------------------")
-        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE, prediction_type="distribution")
+        evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE, prediction_type="distribution", feature=feature)
         print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")
         print(f"Mean Absolute Error: {evaluation_results['MAE']}")
         print(f"Root Mean Square Error: {evaluation_results['RMSE']}")
