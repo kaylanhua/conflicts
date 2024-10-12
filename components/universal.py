@@ -5,10 +5,12 @@ import sys
 sys.path.append(os.getcwd())
 
 # Check if the file exists before trying to read it
-file_path = f'../data/views/country_key.csv'
+file_path = '/Users/kaylahuang/Desktop/conflicts/data/views/country_key.csv'
 if os.path.exists(file_path):
     country_key_df = pd.read_csv(file_path)
 else:
+    print(os.getcwd())
+    print(sys.path)
     raise FileNotFoundError(f"The file {file_path} does not exist. Please check the path and ensure the file is present.")
 
 def get_country_id(country_name):

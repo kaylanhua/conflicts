@@ -25,7 +25,7 @@ MAX_RECORDS = 10
 MODEL_CHOICE = "claude"  # "gpt" or "claude"
 DATA_PERTURB = ""  # or "" for militia movement
 SAMPLES = 3
-USE_CHROMA = False  
+USE_CHROMA = True  
 
 # Check for country name argument
 if len(sys.argv) < 2:
@@ -323,7 +323,6 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str], feature:
     month_key = load_month_key()
     month_id_num = next(id for id, (y, m) in month_key.items() if y == year and m == month)
     df = pd.read_csv(DATA_SOURCE)
-    true_death_count = df[df['month_id'] == month_id_num]['ged_sb'].values[0]
     
     create_vector_embedding(year, month, summary, feature)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
@@ -393,7 +392,7 @@ def run_prediction_cycle(year: int, month: int, queries: List[str], samples: int
     
     return next_month_predictions
 
-def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, queries: List[str]) -> None:
+def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, queries: List[str], feature: str) -> None:
     start_date = datetime(start_year, start_month, 1)
     
     for i in range(n_months):
@@ -401,14 +400,14 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
         current_year, current_month = current_date.year, current_date.month
         
         print(f"\033[94mPreparing and inserting data for {current_year}-{current_month:02d} ({i+1}/{n_months})\033[0m")
-        prepare_and_insert_month(current_year, current_month, queries)
+        prepare_and_insert_month(current_year, current_month, queries, feature)
 
 if __name__ == "__main__":
     run_one_test = False
     run_insertion = False
     run_evaluation = True
     
-    current_year = 2019
+    current_year = 2017
     current_month = 1
     
     query_lists = {

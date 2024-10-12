@@ -7,6 +7,11 @@ from scipy.stats import norm
 import math
 import matplotlib.pyplot as plt
 import sys
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
+from tkinter import ttk
 
 # Constants
 if len(sys.argv) < 2:
@@ -110,7 +115,32 @@ def get_all_prediction_files(directory):
 def visualize_table(all_results):
     sorted_results = dict(sorted(all_results.items(), key=lambda item: item[1]['CRPS']))
 
-    fig, ax = plt.subplots(figsize=(12, len(sorted_results) * 0.5 + 1))
+    # Create a Tkinter window
+    root = tk.Tk()
+    root.title(f"Comparison of Model Performance for {country} {year}")
+
+    # Create a frame to hold the canvas
+    frame = ttk.Frame(root)
+    frame.grid(row=0, column=0, sticky="nsew")
+
+    # Create a canvas that can scroll vertically
+    canvas = tk.Canvas(frame)
+    scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Create the figure and axis
+    fig = Figure(figsize=(12, len(sorted_results) * 0.5 + 1))
+    ax = fig.add_subplot(111)
     ax.axis('off')
     ax.axis('tight')
 
@@ -135,9 +165,26 @@ def visualize_table(all_results):
             for j in range(5):  # 5 columns
                 table[(i+1, j)].set_facecolor('lightyellow')
 
-    plt.title(f"Comparison of Model Performance for {country} {year} (Sorted by CRPS)")
-    plt.tight_layout()
-    plt.show()
+    # Create a FigureCanvasTkAgg object
+    canvas_widget = FigureCanvasTkAgg(fig, master=scrollable_frame)
+    canvas_widget.draw()
+
+    # Add the canvas to the Tkinter window
+    canvas_widget.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+    # Pack the scrollbar and canvas
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    # Configure the frame to expand
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+
+    # Set a fixed height for the window (adjust as needed)
+    root.geometry(f"800x600")
+
+    # Start the Tkinter event loop
+    root.mainloop()
 
 if __name__ == "__main__":
     use_latex = False

@@ -50,3 +50,4 @@ pinecone
 anthropic
 fuzzywuzzy
 chromadb
+tk
