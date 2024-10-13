@@ -16,6 +16,9 @@ def create_folder(country):
     os.makedirs(f"/Users/kaylahuang/Desktop/conflicts/hadr/results/{country}", exist_ok=True)
     global COUNTRY_FOLDER
     COUNTRY_FOLDER = f"/Users/kaylahuang/Desktop/conflicts/hadr/results/{country}"
+    
+    for year in range(2018, 2024):
+        os.makedirs(f"{COUNTRY_FOLDER}/{year}", exist_ok=True)
 
 def process_country(country, start_year=2010):
     if not os.path.exists(f"/Users/kaylahuang/Desktop/conflicts/data/views/{country}.csv"):
@@ -45,8 +48,7 @@ def process_country(country, start_year=2010):
 
 
 def process_benchmark(country, country_id, country_folder):
-    # type = ["Conflictology", "last", "zero", "boot"]
-    type = ["Conflictology", "last"]
+    type = ["Conflictology", "last", "zero", "boot"]
     
     for year in range(2018, 2024):
         for t in type:
@@ -65,7 +67,7 @@ def process_benchmark(country, country_id, country_folder):
                 outcome_df.to_csv(f"/Users/kaylahuang/Desktop/conflicts/data/views/bm/{t}_{year}.csv")
             
             country_data = outcome_df[outcome_df['country_id'] == country_id]
-            country_data.to_csv(f"{country_folder}/{country}_{t}_{year}.csv")
+            country_data.to_csv(f"{country_folder}/{year}/{country}_{t}_{year}.csv")
 
             print(f"Generated file for {t} {year}")
         
