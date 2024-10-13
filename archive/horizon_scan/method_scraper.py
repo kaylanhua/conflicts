@@ -1,6 +1,7 @@
 import requests
 import time
 import json
+import argparse
 
 def semantic_scholar_bulk_search(query, fields, limit=300, token=None):
     url = "https://api.semanticscholar.org/graph/v1/paper/search/bulk"
@@ -20,8 +21,8 @@ def semantic_scholar_bulk_search(query, fields, limit=300, token=None):
         return None
     
 def is_conflict_forecasting(title, abstract):
-    forecasting_keywords = ['forecast', 'predict', 'model']
-    conflict_keywords = ['conflict ', ' war ', 'civil ']
+    forecasting_keywords = [' forecast', ' model']
+    conflict_keywords = [' war ', ' wars ', 'civil ']
     
     text = (title + " " + (abstract or "")).lower()
     
@@ -34,9 +35,9 @@ def save_results(results, filename):
     with open(filename, 'w') as f:
         json.dump(results, f, indent=2)
 
-def main():
-    query = '"random forest" AND conflict'
-    fields = "title,abstract,url,year,authors,citationCount,venue,publicationTypes"
+def main(method):
+    query = f'"{method}" AND conflict'
+    fields = "title,abstract,url,year,citationCount"
     all_results = []
     token = None
 
@@ -66,9 +67,13 @@ def main():
     # Sort results by citation count
     all_results.sort(key=lambda x: x.get('citationCount', 0), reverse=True)
     
-    # Save results
-    save_results(all_results, 'random_forest_conflict_forecasting.json')
-    print(f"Saved {len(all_results)} papers to random_forest_conflict_forecasting.json")
+    filename = f'{method.replace(" ", "_")}_papers.json'
+    save_results(all_results, filename)
+    print(f"Saved {len(all_results)} papers to {filename}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Search for conflict forecasting papers using a specific method.')
+    parser.add_argument('method', type=str, help='The method to search for (e.g., "random forest", "transformers", "linear models")')
+    args = parser.parse_args()
+    
+    main(args.method)
