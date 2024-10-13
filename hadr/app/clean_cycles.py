@@ -15,6 +15,8 @@ from fuzzywuzzy import process
 import chromadb
 from chromadb.utils import embedding_functions
 
+sys.path.append('../../')
+from components.universal import get_country_id
 from pulling_gdelt import get_gdelt_data, create_dataset
 
 # Load environment variables
@@ -29,22 +31,12 @@ USE_CHROMA = True
 
 # Check for country name argument
 if len(sys.argv) < 2:
-    print("Please provide a country name as an argument.")
+    print("Please provide a country name as an argument. Ex: python clean_cycles.py 'Sri Lanka'")
     sys.exit(1)
 
 COUNTRY_NAME = sys.argv[1].lower()
-DATA_SOURCE = f'../../data/views/{COUNTRY_NAME}.csv'
+DATA_SOURCE = f'/Users/kaylahuang/Desktop/conflicts/data/views/{COUNTRY_NAME}.csv'
 COUNTRY_FOLDER = f"{COUNTRY_NAME}_data"
-
-# Load country key data
-country_key_df = pd.read_csv('../../data/views/country_key.csv')
-
-def get_country_id(country_name: str) -> int:
-    best_match = process.extractOne(country_name, country_key_df['name'])
-    if best_match[1] >= 80:  # Threshold for a good match
-        return country_key_df[country_key_df['name'] == best_match[0]]['id'].values[0]
-    else:
-        raise ValueError(f"No close match found for country name: {country_name}")
 
 COUNTRY_ID = get_country_id(COUNTRY_NAME)
 print(f"COUNTRY_ID: {COUNTRY_ID}")
@@ -171,7 +163,7 @@ def get_similar_months(current_year: int, current_month: int, current_summary: s
     return filtered_months
 
 def load_month_key():
-    month_key_df = pd.read_csv('../../data/views/month_key.csv')
+    month_key_df = pd.read_csv('/Users/kaylahuang/Desktop/conflicts/data/views/month_key.csv')
     return {row['month_id']: (row['Year'], row['Month']) for _, row in month_key_df.iterrows()}
 
 def get_historical_death_counts(year: int, month: int, num_months: int = 3) -> List[Dict]:
@@ -296,7 +288,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
         return [0]
     
     print(f"****** THE PREDICTIONS: {predictions}")
-    return predictions
+    return predictions # this is for the NEXT MONTH!
 
 def prepare_and_insert_month(year: int, month: int, queries: List[str], feature: str) -> None:
     if not os.path.exists(COUNTRY_FOLDER):
@@ -320,17 +312,13 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str], feature:
     
     summary = summarize_monthly_news(year, month)
     
-    month_key = load_month_key()
-    month_id_num = next(id for id, (y, m) in month_key.items() if y == year and m == month)
-    df = pd.read_csv(DATA_SOURCE)
-    
     create_vector_embedding(year, month, summary, feature)
     print(f"Month {month_id} has been prepared and inserted into the vector database.")
 
 def evaluate_predictions(year: int, queries: List[str], feature: str, forecast_months: int = 12, samples: int = 3, model: str = "gpt", prediction_type: str = "point") -> Dict[str, float]:
     print(f"Starting evaluation for year {year} with {forecast_months} forecast months")
     df = pd.read_csv(DATA_SOURCE)
-    month_key_df = pd.read_csv('../../data/views/month_key.csv')
+    month_key_df = pd.read_csv('/Users/kaylahuang/Desktop/conflicts/data/views/month_key.csv')
     
     predictions_data = []
     
@@ -359,7 +347,7 @@ def evaluate_predictions(year: int, queries: List[str], feature: str, forecast_m
     predictions_df = pd.DataFrame(predictions_data)
     
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f'../views_testing/{COUNTRY_NAME}_{year}/{COUNTRY_NAME}_RAG_{year}_{DATA_PERTURB}{current_time}.csv'
+    output_file = f'/Users/kaylahuang/Desktop/conflicts/hadr/results/{COUNTRY_NAME}/{year}/{COUNTRY_NAME}_RAG_{year}_{DATA_PERTURB}{current_time}.csv'
     predictions_df.to_csv(output_file, index=False)
     print(f"Predictions saved to {output_file}")
     

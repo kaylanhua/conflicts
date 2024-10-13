@@ -19,19 +19,13 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 country = sys.argv[1].lower()
-year = "2019"
-pred_preamble = f"{country}_{year}/"
+year = sys.argv[2]
+pred_preamble = f"results/{country}/{year}/"
+if not os.path.exists(pred_preamble):
+    print(f"Folder {pred_preamble} does not exist. Please try again with a valid country and year.")
+    sys.exit(1)
+    
 actuals_file = pred_preamble + f"{country}_cm_actuals_{year}.csv"
-
-def get_file_path(file_type, model=None, variant=None):
-    if file_type == "baseline":
-        if model == "conflictology":
-            return f"{pred_preamble}{country}_Conflictology_{year}.csv"
-        return f"{pred_preamble}{country}_{model}_{year}.csv"
-    elif file_type == "prediction":
-        if model == "rag" and variant:
-            return f"{pred_preamble}{country}_RAG_{variant}_{year}.csv"
-        return f"{pred_preamble}{country}_{model}_forecasts_{year}.csv"
 
 def log_score(f_y):
     epsilon = 1e-10  # Small value to avoid log(0)
