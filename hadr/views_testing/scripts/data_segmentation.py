@@ -3,8 +3,8 @@ import os
 import datetime
 
 # Load the data
-features_df = pd.read_parquet('../../data/views/cm_features.parquet')
-month_key_df = pd.read_csv('../../data/views/month_key.csv')
+features_df = pd.read_parquet('/Users/kaylahuang/Desktop/conflicts/data/views/cm_features.parquet')
+month_key_df = pd.read_csv('/Users/kaylahuang/Desktop/conflicts/data/views/month_key.csv')
 
 def parse_date(date_str):
     month, year = date_str.split('-')

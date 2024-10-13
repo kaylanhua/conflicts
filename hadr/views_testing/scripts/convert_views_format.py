@@ -2,8 +2,11 @@ import os
 import pandas as pd
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append('../../')
+sys.path.append('../../../')
 from components.universal import get_country_id
+
+## Run this on a per country basis to convert the views format to the format we use for metrics
+## takes in a country name (should match the folder name)
 
 def convert_views_format(input_file, output_file, country_name):
     country_id = get_country_id(country_name)
@@ -25,11 +28,9 @@ def convert_views_format(input_file, output_file, country_name):
     new_df.to_csv(output_file, index=False)
     print(f"Converted file saved as {output_file}")
 
-def process_country(country_name):
+def process_country(country_name, year):
     # Infer the folder path based on the country name
-    year = "2019"  # Assuming the year is always 2019, adjust if needed
     folder_path = f'/Users/kaylahuang/Desktop/conflicts/hadr/views_testing/{country_name}_{year}'
-    # folder_path = os.path.join("hadr", "views_testing", f"{country_name}_{year}")
     
     if not os.path.exists(folder_path):
         print(f"Error: Folder {folder_path} does not exist.")
@@ -42,9 +43,10 @@ def process_country(country_name):
             convert_views_format(input_file, output_file, country_name)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python convert_views_format.py <country_name>")
+    if len(sys.argv) < 3:
+        print("Usage: python convert_views_format.py <country_name> <year>")
         sys.exit(1)
 
     country_name = sys.argv[1].lower()
-    process_country(country_name)
+    year = sys.argv[2]
+    process_country(country_name, year)
