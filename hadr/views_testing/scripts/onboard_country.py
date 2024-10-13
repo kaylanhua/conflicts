@@ -46,7 +46,7 @@ def process_country(country, start_year=2010):
 
 def process_benchmark(country, country_id, country_folder):
     # type = ["Conflictology", "last", "zero", "boot"]
-    type = ["Conflictology"]
+    type = ["Conflictology", "last"]
     
     for year in range(2018, 2024):
         for t in type:
