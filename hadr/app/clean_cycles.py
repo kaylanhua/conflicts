@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from fuzzywuzzy import process
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.config import Settings
 
 sys.path.append('../../')
 from components.universal import get_country_id
@@ -28,6 +29,7 @@ MODEL_CHOICE = "claude"  # "gpt" or "claude"
 DATA_PERTURB = ""  # or "" for militia movement
 SAMPLES = 3
 USE_CHROMA = True  
+USE_VECTOR_DB = False
 
 # Check for country name argument
 if len(sys.argv) < 2:
@@ -48,6 +50,10 @@ claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 # Initialize vector database
 if USE_CHROMA:
     chroma_client = chromadb.Client()
+    # chroma_client = chromadb.Client(Settings(
+    #     chroma_db_impl="duckdb+parquet",
+    #     persist_directory='vector_db/'
+    # ))
     chroma_collection = chroma_client.get_or_create_collection(
         name=f"hadr-all",
         embedding_function=embedding_functions.OpenAIEmbeddingFunction(
@@ -217,16 +223,18 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     scrubbed_summary = scrub_summary(current_data['summary'], scrub_all=False)
     
     prompt = f"Current month summary: {scrubbed_summary}\n\n"
-    prompt += "Similar past months:\n"
-    similarity_labels = ["Most similar", "Second most similar", "Third most similar"]
     
-    month_key = load_month_key()
-    for i, match in enumerate(similar_months[:3]):
-        match_year, match_month = map(int, match['id'].split('_'))
-        month_id = next(id for id, (y, m) in month_key.items() if y == match_year and m == match_month)
-        next_month_id = month_id + 1
-        next_month_actual = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
-        prompt += f"- Month: {similarity_labels[i]}, Death count for the next month: {next_month_actual}\n"
+    if USE_VECTOR_DB:
+        prompt += "Similar past months:\n"
+        similarity_labels = ["Most similar", "Second most similar", "Third most similar"]
+    
+        month_key = load_month_key()
+        for i, match in enumerate(similar_months[:3]):
+            match_year, match_month = map(int, match['id'].split('_'))
+            month_id = next(id for id, (y, m) in month_key.items() if y == match_year and m == match_month)
+            next_month_id = month_id + 1
+            next_month_actual = df[df['month_id'] == next_month_id]['ged_sb'].values[0]
+            prompt += f"- Month: {similarity_labels[i]}, Death count for the next month: {next_month_actual}\n"
     
     prompt += f"\nHistorical death counts for the past 3 months:\n"
     for i, count in enumerate(historical_counts, start=1):
@@ -237,7 +245,7 @@ def predict_next_month(year: int, month: int, samples: int = 3, model: str = "gp
     elif prediction_type == "distribution":
         prompt += f"\n Based on this information, predict a distribution for the death count for the next month. Provide the distribution in the form of an array of three numbers [low, median, high] where low and high are the bounds of the prediction interval. ONLY return the array with no other text."
 
-    print(f"****** THE PREDICTION PROMPT: {prompt}")
+    print(f"\033[94m****** THE PREDICTION PROMPT: {prompt}\033[0m")
     predictions = []
     
     repeat = samples if prediction_type == "point" else 1
@@ -389,14 +397,13 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
         
         print(f"\033[94mPreparing and inserting data for {current_year}-{current_month:02d} ({i+1}/{n_months})\033[0m")
         prepare_and_insert_month(current_year, current_month, queries, feature)
+        if USE_CHROMA: chroma_collection.persist()
+
 
 if __name__ == "__main__":
     run_one_test = False
     run_insertion = False
     run_evaluation = True
-    
-    current_year = 2017
-    current_month = 1
     
     query_lists = {
         "drc": (["drc", "M23", "ADF", "FDLR"], "militia activity"),
@@ -410,8 +417,8 @@ if __name__ == "__main__":
     if not queries:
         raise ValueError(f"No queries found for country: {COUNTRY_NAME}")
     
-    evaluation_year = 2019
-    evaluation_month = 1
+    current_year = 2017
+    current_month = 1
     
     if run_one_test: 
         print("-------------------TEST PREDICTION---------------------")
@@ -419,9 +426,11 @@ if __name__ == "__main__":
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(current_year, start_month=1, n_months=36, queries=queries, feature=feature)
+        prepare_and_insert_range(current_year, start_month=1, n_months=1, queries=queries, feature=feature)
     
     if run_evaluation: 
+        evaluation_year = 2019
+        evaluation_month = 1
         print("-------------------EVALUATION---------------------")
         evaluation_results = evaluate_predictions(evaluation_year, queries, forecast_months=12, samples=SAMPLES, model=MODEL_CHOICE, prediction_type="distribution", feature=feature)
         print(f"Evaluation results for {COUNTRY_NAME} in {evaluation_year}:")

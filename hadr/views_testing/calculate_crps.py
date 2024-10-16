@@ -20,7 +20,7 @@ if len(sys.argv) < 2:
 
 country = sys.argv[1].lower()
 year = sys.argv[2]
-pred_preamble = f"results/{country}/{year}/"
+pred_preamble = f"../results/{country}/{year}/"
 if not os.path.exists(pred_preamble):
     print(f"Folder {pred_preamble} does not exist. Please try again with a valid country and year.")
     sys.exit(1)
