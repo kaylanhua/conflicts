@@ -29,7 +29,7 @@ MODEL_CHOICE = "claude"  # "gpt" or "claude"
 DATA_PERTURB = ""  # or "" for militia movement
 SAMPLES = 3
 USE_CHROMA = True  
-USE_VECTOR_DB = False
+USE_VECTOR_DB = True
 
 # Check for country name argument
 if len(sys.argv) < 2:
@@ -49,11 +49,12 @@ claude_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # Initialize vector database
 if USE_CHROMA:
-    chroma_client = chromadb.Client()
+    # chroma_client = chromadb.Client()
     # chroma_client = chromadb.Client(Settings(
     #     chroma_db_impl="duckdb+parquet",
     #     persist_directory='vector_db/'
     # ))
+    chroma_client = chromadb.PersistentClient(path="vector_db")
     chroma_collection = chroma_client.get_or_create_collection(
         name=f"hadr-all",
         embedding_function=embedding_functions.OpenAIEmbeddingFunction(
@@ -116,16 +117,17 @@ def summarize_monthly_news(year: int, month: int) -> str:
 def create_vector_embedding(year: int, month: int, summary: str, feature: str):
     embeddings = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
     embedding = embeddings.embed_documents([summary])[0]
+    feature_name = feature.replace(" ", "_")
     
     if USE_CHROMA:
         chroma_collection.add(
             documents=[summary],
             embeddings=[embedding],
             metadatas=[{"year": year, "month": month, "country": COUNTRY_NAME, "feature": feature}],
-            ids=[f"{year}_{month:02d}"]
+            ids=[f"{COUNTRY_NAME}_{feature_name}_{year}_{month:02d}"]
         )
     else:
-        index.upsert([(f"{year}_{month:02d}", embedding, {"type": "militia"})])
+        index.upsert([(f"{COUNTRY_NAME}_{feature_name}_{year}_{month:02d}", embedding, {"type": feature})])
 
 def get_similar_months(current_year: int, current_month: int, current_summary: str, top_k: int = 3) -> List[Dict]:
     """
@@ -303,7 +305,7 @@ def prepare_and_insert_month(year: int, month: int, queries: List[str], feature:
         os.makedirs(COUNTRY_FOLDER)
         print(f"Created folder: {COUNTRY_FOLDER}")
     
-    month_id = f"{year}_{month:02d}"
+    month_id = f"{COUNTRY_NAME}_{feature.replace(" ", "_")}_{year}_{month:02d}"
     
     if USE_CHROMA:
         if chroma_collection.get(ids=[month_id])['ids']:
@@ -397,13 +399,12 @@ def prepare_and_insert_range(start_year: int, start_month: int, n_months: int, q
         
         print(f"\033[94mPreparing and inserting data for {current_year}-{current_month:02d} ({i+1}/{n_months})\033[0m")
         prepare_and_insert_month(current_year, current_month, queries, feature)
-        if USE_CHROMA: chroma_collection.persist()
 
 
 if __name__ == "__main__":
     run_one_test = False
-    run_insertion = False
-    run_evaluation = True
+    run_insertion = True
+    run_evaluation = False
     
     query_lists = {
         "drc": (["drc", "M23", "ADF", "FDLR"], "militia activity"),
@@ -426,7 +427,7 @@ if __name__ == "__main__":
     
     if run_insertion: 
         print("-------------------INSERTION---------------------")
-        prepare_and_insert_range(current_year, start_month=1, n_months=1, queries=queries, feature=feature)
+        prepare_and_insert_range(current_year, start_month=1, n_months=35, queries=queries, feature=feature)
     
     if run_evaluation: 
         evaluation_year = 2019
